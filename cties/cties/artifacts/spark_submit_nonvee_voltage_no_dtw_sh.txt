@@ -1,0 +1,44 @@
+#/**------------------------------------------------------------------------------------------**/
+#/**          AMERICAN ELECTRIC POWER – Underground Network Project                           **/
+#/**------------------------------------------------------------------------------------------**/
+#/**                               Confidentiality Information:                               **/
+#/**                               Copyright 2018 by                                          **/
+#/**                               American Electric Power                                    **/
+#/**                                                                                          **/
+#/** This module is confidential and proprietary information of American Electric             **/
+#/** Power. It is not to be copied or reproduced in any form, by any means, in                **/
+#/** whole or in part, nor is it to be used for any purpose other than that for               **/
+#/** which it is expressly provided without written permission of AEP.                        **/
+#/**------------------------------------------------------------------------------------------**/
+
+
+
+script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+script_name="$(basename ${BASH_SOURCE[0]})"
+
+function submit_spark_job()
+{
+    echo "spark-submit \
+        --conf \"spark.driver.cores=4\" \
+        --conf \"spark.executor.cores=4\" \
+        --conf \"spark.driver.memory=8g\" \
+        --conf \"spark.executor.memory=8g\" \
+        --py-files /usr/hdp/current/hive_warehouse_connector/pyspark_hwc-1.0.0.3.1.0.267-3.zip \
+        ${script_dir}/nonvee_voltage_array_no_dtw.py"
+
+    spark-submit \
+        --conf "spark.driver.cores=4" \
+        --conf "spark.executor.cores=8" \
+	--conf "spark.executor.instances=8" \
+        --conf "spark.driver.memory=8g" \
+        --conf "spark.executor.memory=8g" \
+	--py-files /usr/hdp/current/hive_warehouse_connector/pyspark_hwc-1.0.0.3.1.0.267-3.zip,dependencies.zip \
+        ${script_dir}/nonvee_voltage_array_no_dtw.py
+}
+
+function main()
+{
+    submit_spark_job
+}
+
+main

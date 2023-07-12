@@ -1,0 +1,428 @@
+##/**------------------------------------------------------------------------------------------**/
+##/**    AMERICAN ELECTRIC POWER - CTIES cties-stepfunction CFN script                         **/
+##/**------------------------------------------------------------------------------------------**/
+##/**                               Confidentiality Information:                               **/
+##/**                               Copyright 2022, 2023 by                                    **/
+##/**                               American Electric Power                                    **/
+##/**                                                                                          **/
+##/** This module is confidential and proprietary information of American Electric             **/
+##/** Power, it is not to be copied or reproduced in any form, by any means, in                **/
+##/** whole or in part, nor is it to be used for any purpose other than that for               **/
+##/** which it is expressly provide without written permission of AEP.                         **/
+##/**------------------------------------------------------------------------------------------**/
+##/** AEP Custom Changes                                                                       **/
+##/**  Version #   Name                     Date            Description                        **/
+##/**   V0.1       Diganta                  03/20/2022      First Attempt in CloudFormation    **/
+##/**                                                                                          **/
+##/**------------------------------------------------------------------------------------------**/
+
+AWSTemplateFormatVersion: 2010-09-09
+Description: CTIES STEP-FUNCTION CFN Script
+
+
+## Note: Command to create Stack via CLI
+## aws cloudformation deploy \
+## --template cties-stepfunction.yml \
+## --stack-name cties-stepfunction \
+## --tags BusinessUnit=ITCORP \
+##        Owner=analytics_hadoop@aep.com \
+##        map-migrated=d-server-01lbno209ea5yq \
+##        map-migrated-app=Hadoop_Prod \
+## --capabilities "CAPABILITY_NAMED_IAM" \
+## --no-fail-on-empty-changeset \
+## --parameter-overrides pEnvironment=dev 
+
+
+## Define Parameters
+
+Parameters:
+
+## Env
+  pEnvironment:
+    Description: AEP Lifecycle Environment
+    Type: String
+    Default: dev
+    AllowedValues: [ dev, qa, prod ]
+
+  pStepFunctionName:
+    Type: String
+    Description: Function Name
+    Default: 'aep-sf2-cties'
+
+Resources:
+  ## StepFunction IAM Role
+  rStepFunctionIAMRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: states.amazonaws.com
+            Action: sts:AssumeRole
+      RoleName: !Sub "cties-stepfunction-execution-role-${pEnvironment}"
+      Policies:
+        - PolicyName: aep_dl_app_stepfunc_policy_cties_logs
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                  - logs:CreateLogDelivery
+                  - logs:GetLogDelivery
+                  - logs:UpdateLogDelivery
+                  - logs:DeleteLogDelivery
+                  - logs:ListLogDeliveries
+                  - logs:PutResourcePolicy
+                  - logs:DescribeResourcePolicies
+                  - logs:DescribeLogGroups
+                Effect: Allow
+                Resource: '*'      
+
+        - PolicyName: aep_dl_app_stepfunc_policy_cties_kms
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                  - kms:Decrypt
+                  - kms:Encrypt
+                  - kms:Get*
+                  - kms:List*
+                  - kms:DescribeCustomKeyStores
+                  - kms:DescribeKey
+                  - kms:GenerateDataKey
+
+                Effect: Allow
+                Resource: 
+                  # '*'
+                  - !ImportValue s3KMSKeyArn
+                  # - arn:aws:kms:us-east-1:292805373755:key/a3023ed0-948d-4af9-bc91-f6fa16cda59f
+                  # - arn:aws:kms:us-east-1:889415020100:key/5936e2d8-4b42-4f25-a643-30044d1a1142
+
+        - PolicyName: aep_dl_app_stepfunc_policy_cties_glue
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                  - glue:StartJobRun
+                  - glue:GetJobRun
+                  - glue:GetJobRuns
+                  - glue:GetJob
+                  - glue:BatchStopJobRun
+                Effect: Allow
+                Resource: !Sub "arn:aws:glue:*:${AWS::AccountId}:job/cties*"
+        
+        - PolicyName: aep_dl_app_stepfunction_policy_cties_lambda
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                  - lambda:InvokeFunction
+                Effect: Allow
+                Resource: '*'
+                  #!Sub "arn:aws:glue:*:${AWS::AccountId}:job/cties*"
+
+        - PolicyName: aep_dl_app_stepfunc_policy_cties_xray
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                  - "xray:PutTraceSegments"
+                  - "xray:PutTelemetryRecords"
+                  - "xray:GetSamplingRules"
+                  - "xray:GetSamplingTargets"
+                Effect: Allow
+                Resource: '*'
+
+      PermissionsBoundary: !Sub "arn:aws:iam::${AWS::AccountId}:policy/AEPCloudBoundary"
+      
+## StepFunction 
+  rCtiesStepFunction:
+    Type: 'AWS::StepFunctions::StateMachine'
+    Properties:
+      StateMachineName: !Sub "${pStepFunctionName}"
+      StateMachineType: STANDARD
+      RoleArn: !GetAtt rStepFunctionIAMRole.Arn
+      TracingConfiguration:
+        Enabled: true
+      Tags: 
+        - Key: Owner
+          Value: 'analytics_hadoop@aep.com'
+        - Key: Team
+          Value: 'Analytics Hadoop'
+        - Key: ProductName
+          Value: 'Step Function'
+        - Key: BusinessUnit
+          Value: 'ITCORP'
+        - Key: BackUp
+          Value: 'False'
+        - Key: UseCase
+          Value: 'CTIES' 
+        - Key: Step
+          Value: 'Jobs Orchestration - CTies'
+      
+      DefinitionString: !Sub |
+        {
+        "Comment": "CTies Step Function",
+        "StartAt": "aep-sf2-cties-ps",
+        "States": {
+          "aep-sf2-cties-ps": {
+            "Type": "Parallel",
+            "Branches": [
+              {
+                "StartAt": "aep-sf2-cties-meter-xfmr-stg-load-g",
+                "States": {
+                  "aep-sf2-cties-meter-xfmr-stg-load-g": {
+                    "Type": "Task",
+                    "Resource": "arn:aws:states:::glue:startJobRun.sync",
+                    "Parameters": {
+                      "JobName": "cties-meter-xfmr-map-raw-stg",
+                      "Arguments": {
+                        "--AWS_ENV.$": "$.AWS_ENV",
+                        "--VAR_OPCO.$": "$.VAR_OPCO",
+                        "--VAR_EXTRACT_DT_FROM.$": "$.VAR_EXTRACT_DT_FROM",
+                        "--VAR_EXTRACT_DT_TO.$": "$.VAR_EXTRACT_DT_TO",
+                        "--S3_DATA_RAW.$": "$.S3_DATA_RAW",
+                        "--S3_DATA_WORK.$": "$.S3_DATA_WORK",
+                        "--S3_DATA_CONSUME.$": "$.S3_DATA_CONSUME",
+                        "--VAR_SNS_TOPIC.$": "$.VAR_SNS_TOPIC"
+                      }
+                    },
+                    "Catch": [
+                      {
+                        "ErrorEquals": [
+                          "Glue.ThrottlingException"
+                        ],
+                        "Next": "WaitAndRetry_meter_xfmr_stg"
+                      }
+                    ],
+                    "End": true
+                  },
+                  "WaitAndRetry_meter_xfmr_stg": {
+                    "Type": "Wait",
+                    "Seconds": 180,
+                    "Next": "aep-sf2-cties-meter-xfmr-stg-load-g"
+                  }
+                }
+              },
+              {
+                "StartAt": "aep-sf2-cties-meter-prem-stg-load-g",
+                "States": {
+                  "aep-sf2-cties-meter-prem-stg-load-g": {
+                    "Type": "Task",
+                    "Resource": "arn:aws:states:::glue:startJobRun.sync",
+                    "Parameters": {
+                      "JobName": "cties-meter-premise-src-stg",
+                      "Arguments": {
+                        "--AWS_ENV.$": "$.AWS_ENV",
+                        "--VAR_OPCO.$": "$.VAR_OPCO",
+                        "--S3_DATA_RAW.$": "$.S3_DATA_RAW",
+                        "--S3_DATA_WORK.$": "$.S3_DATA_WORK",
+                        "--S3_DATA_CONSUME.$": "$.S3_DATA_CONSUME",
+                        "--VAR_SNS_TOPIC.$": "$.VAR_SNS_TOPIC"
+                      }
+                    },
+                    "Catch": [
+                      {
+                        "ErrorEquals": [
+                          "Glue.ThrottlingException"
+                        ],
+                        "Next": "WaitAndRetry_meter_premise_stg"
+                      }
+                    ],
+                    "End": true
+                  },
+                  "WaitAndRetry_meter_premise_stg": {
+                    "Type": "Wait",
+                    "Seconds": 180,
+                    "Next": "aep-sf2-cties-meter-prem-stg-load-g"
+                  }
+                }
+              }
+            ],
+            "Next": "aep-sf2-cties-meter-xfmr-consume-load-g",
+            "ResultPath": null
+          },
+          "aep-sf2-cties-meter-xfmr-consume-load-g": 
+          {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::glue:startJobRun.sync",
+            "Parameters": 
+            {
+              "JobName": "cties-meter-xfmr-map-stg-consume",
+              "Arguments": 
+              {
+                  "--AWS_ENV.$": "$.AWS_ENV",
+                  "--VAR_OPCO.$": "$.VAR_OPCO",
+                  "--S3_DATA_WORK.$": "$.S3_DATA_WORK",
+                  "--S3_DATA_CONSUME.$": "$.S3_DATA_CONSUME",
+                  "--VAR_SNS_TOPIC.$": "$.VAR_SNS_TOPIC"
+              }
+            },
+            "Catch": [
+              {
+                "ErrorEquals": ["Glue.ThrottlingException"],
+                "Next": "WaitAndRetry_xfmr_consume"
+              }
+            ],
+            "Next": "aep-sf2-cties-freq-identifier-l",
+            "ResultPath": null
+          },
+          "aep-sf2-cties-freq-identifier-l": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "Parameters": {
+              "Payload": {
+                "AWS_ENV.$": "$.AWS_ENV",
+                "VAR_OPCO.$": "$.VAR_OPCO",
+                "S3_DATA_WORK.$": "$.S3_DATA_WORK",
+                "S3_DATA_RAW.$": "$.S3_DATA_RAW",
+                "S3_DATA_CONSUME.$": "$.S3_DATA_CONSUME",
+                "VAR_SNS_TOPIC.$": "$.VAR_SNS_TOPIC"
+              },
+               "FunctionName": "cties-freq-identifier-lambda"
+            },
+            "Retry": [
+              {
+                "ErrorEquals": [
+                  "Lambda.ServiceException",
+                  "Lambda.AWSLambdaException",
+                  "Lambda.SdkClientException",
+                  "Lambda.TooManyRequestsException"
+                ],
+                "IntervalSeconds": 2,
+                "MaxAttempts": 6,
+                "BackoffRate": 2
+              }
+            ],
+            "Next": "aep-sf2-cties-freq-checker-c",
+            "OutputPath": "$.Payload"
+          },
+          "aep-sf2-cties-freq-checker-c": {
+            "Type": "Choice",
+            "Choices": [
+              {
+                "Variable": "$.VOLTG_SUMM_TO_PROCESS",
+                "StringEquals": "no",
+                "Next": "Pass"
+              }
+            ],
+            "Default": "aep-sf2-cties-voltg-summ-load-g"
+          },
+          "Pass": {
+            "Type": "Pass",
+            "End": true
+          },
+          "WaitAndRetry_xfmr_consume": {
+            "Type": "Wait",
+            "Seconds": 180,
+            "Next": "aep-sf2-cties-meter-xfmr-consume-load-g"
+          },
+          "aep-sf2-cties-voltg-summ-load-g": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::glue:startJobRun.sync",
+            "Parameters": {
+              "JobName": "cties-meter-xfmr-voltg-summ",
+              "Arguments": {
+                "--AWS_ENV.$": "$.AWS_ENV",
+                "--VAR_OPCO.$": "$.VAR_OPCO",
+                "--S3_CTIES_CONSUME.$": "$.S3_DATA_CONSUME",
+                "--VAR_SNS_TOPIC.$": "$.VAR_SNS_TOPIC"
+              }
+            },
+            "Catch": [
+              {
+                "ErrorEquals": [
+                  "Glue.ThrottlingException"
+                ],
+                "Next": "WaitAndRetry_voltg_summ"
+              }
+            ],
+            "Next": "aep-sf2-cties-random-forest-load-g",
+            "ResultPath": null
+          },
+          "WaitAndRetry_voltg_summ": {
+            "Type": "Wait",
+            "Seconds": 180,
+            "Next": "aep-sf2-cties-voltg-summ-load-g"
+          },
+          "aep-sf2-cties-random-forest-load-g": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::glue:startJobRun.sync",
+            "Parameters": {
+              "JobName": "cties-random-forest",
+              "Arguments": {
+                "--AWS_ENV.$": "$.AWS_ENV",
+                "--VAR_OPCO.$": "$.VAR_OPCO",
+                "--S3_DATA_WORK.$": "$.S3_DATA_WORK",
+                "--S3_CTIES_CONSUME.$": "$.S3_DATA_CONSUME",
+                "--VAR_SNS_TOPIC.$": "$.VAR_SNS_TOPIC"
+              }
+            },
+            "Catch": [
+              {
+                "ErrorEquals": [
+                  "Glue.ThrottlingException"
+                ],
+                "Next": "WaitAndRetry_random_forest"
+              }
+            ],
+            "Next": "aep-sf2-cties-retie-load-g",
+            "ResultPath": "$.taskresult"
+          },
+          "WaitAndRetry_random_forest": {
+            "Type": "Wait",
+            "Seconds": 180,
+            "Next": "aep-sf2-cties-random-forest-load-g"
+          },
+          "aep-sf2-cties-retie-load-g": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::glue:startJobRun.sync",
+            "Parameters": {
+              "JobName": "cties-retie",
+              "Arguments": {
+                "--AWS_ENV.$": "$.AWS_ENV",
+                "--VAR_OPCO.$": "$.VAR_OPCO",
+                "--S3_DATA_WORK.$": "$.S3_DATA_WORK",
+                "--S3_CTIES_CONSUME.$": "$.S3_DATA_CONSUME",
+                "--VAR_SNS_TOPIC.$": "$.VAR_SNS_TOPIC"
+              }
+            },
+            "Catch": [
+              {
+                "ErrorEquals": [
+                  "Glue.ThrottlingException"
+                ],
+                "Next": "WaitAndRetry_re_tie"
+              }
+            ],
+            "End": true,
+            "ResultPath": "$.taskresult"
+          },
+          "WaitAndRetry_re_tie": {
+            "Type": "Wait",
+            "Seconds": 180,
+            "Next": "aep-sf2-cties-retie-load-g"
+          }
+        }
+        }
+
+## Define Resource Definitions to be built
+Outputs:
+
+  oCtiesStepFunctionIAMRoleArn:
+    Description: ARN for Cties StepFunction IAMRole    
+    Value: !GetAtt rStepFunctionIAMRole.Arn
+    Export : 
+      Name : oCtiesStepFunctionIAMRoleArn
+    # Value: !Ref rStepFunctionIAMRole
+    
+
+  oCtiesStepFunctionArn:
+    Description: ARN for Cties Step Function
+    Value: !Ref rCtiesStepFunction
+    # Value: !GetAtt rCtiesStepFunction.Arn
+  

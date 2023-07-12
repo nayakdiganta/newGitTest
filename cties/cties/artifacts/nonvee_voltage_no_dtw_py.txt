@@ -1,0 +1,434 @@
+import sys
+import os
+import re
+from math import sqrt
+from pyspark.sql import SparkSession
+from pyspark.sql import functions as F
+from pyspark.sql.types import *
+from pyspark.sql.window import Window
+from datetime import datetime, date, timedelta
+from time import time
+from pyspark_llap import HiveWarehouseSession
+import numpy as np
+from pyspark.ml.linalg import DenseVector, Vectors, VectorUDT
+from pyspark.ml.feature import MinMaxScaler
+from scipy.spatial.distance import euclidean
+
+"""
+Script:  nonvee_voltage_array_no_dtw.py
+
+Purpose: 
+
+Args:    None
+"""
+
+def print_log(severity, msg):
+    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    out = timestamp + " " + severity.upper() + " " + msg
+    print(out)
+
+
+if __name__ == '__main__':
+
+    spark = SparkSession\
+    	.builder\
+	.appName("Ties1")\
+	.getOrCreate()
+	
+    spark.conf.set("hive.exec.dynamic.partition.mode", "nonstrict")
+    spark.conf.set("hive.exec.dynamic.partition", "true")
+
+    hive = HiveWarehouseSession.session(spark).build()
+
+    sc = spark.sparkContext
+    sc.setLogLevel("ERROR")
+
+    ## Args from BASH
+    aep_opco = 'ap'
+    aep_derived_uom = 'VOLT'
+    usage_start_dt = date(2021, 10, 1)
+    usage_end_dt = date(2021, 10, 31)
+
+    usage_days = usage_end_dt - usage_start_dt
+
+    usage_dts = [ usage_start_dt + timedelta(i) for i in range(usage_days.days + 1) ]
+
+    ## Start seconds
+    s = time()
+
+    ## Env vars
+    hdfs_url = "hdfs://hwx.naisi03.aepsc.com" #os.environ['ISILON_ADDR']
+    hdfs_port = "8020" #os.environ['ISILON_PORT']
+
+    hdfs_base = hdfs_url + ':' + str(hdfs_port) 
+    hdfs_target = hdfs_base + "/user/s292931/ties/nonvee_volt_no_dtw"
+
+#    hdfs_source = os.path.join(hdfs_base, '/data/work/raw/ug_network/breaker_operation')
+    hdfs_sources = [ os.path.join(hdfs_base, '/data/consume/util/intervals/reading_ivl_nonvee',\
+	"aep_opco={}".format(aep_opco),\
+	"aep_usage_dt={}".format(aep_usage_dt),\
+	"aep_derived_uom={}".format(aep_derived_uom)) for aep_usage_dt in usage_dts ]
+    #hdfs_source = os.path.join(hdfs_base, '/data/consume/util/intervals/reading_ivl_nonvee',\
+#	'aep_opco={}'.format(aep_opco))
+
+    mp = hive.executeQuery("""
+        SELECT DISTINCT
+                c.mfr_devc_ser_nbr as serialnumber,
+                a.trsf_pole_nb,
+                COUNT(*) OVER (PARTITION BY a.mfr_devc_ser_nbr) AS xf_meter_cnt
+        FROM default.meter_premise a
+        INNER JOIN default.meter_premise c ON c.trsf_pole_nb = a.trsf_pole_nb
+                AND c.co_cd_ownr IN ('02')
+        WHERE a.co_cd_ownr IN ('02')""")
+
+    for hdfs_source in hdfs_sources:
+
+        df = spark.read.format("orc")\
+		.option("compression", "snappy")\
+		.load(path=hdfs_source)\
+		.filter("aep_srvc_qlty_idntfr = 'AVG'")\
+		.select("aep_premise_nb", "serialnumber", "starttimeperiod", "aep_raw_value")
+        
+        df2 = df.join(mp, "serialnumber", how="inner")\
+		.select("aep_premise_nb", "serialnumber", "trsf_pole_nb", "starttimeperiod", "aep_raw_value", "xf_meter_cnt")\
+		.cache()
+    
+        df2.createOrReplaceTempView("voltages")
+
+        # Pivot intervals and throw them into an array.  Throw out daily record if a null or 0 exists.
+        array_df = spark.sql("""	
+	SELECT
+		aep_premise_nb,
+		serialnumber,
+		trsf_pole_nb,
+		xf_meter_cnt,
+		array(
+	            CAST(concat_ws('', a.start_0000) AS FLOAT),
+	            CAST(concat_ws('', a.start_0015) AS FLOAT),
+	            CAST(concat_ws('', a.start_0030) AS FLOAT),
+	            CAST(concat_ws('', a.start_0045) AS FLOAT),
+	            CAST(concat_ws('', a.start_0100) AS FLOAT),
+	            CAST(concat_ws('', a.start_0115) AS FLOAT),
+	            CAST(concat_ws('', a.start_0130) AS FLOAT),
+	            CAST(concat_ws('', a.start_0145) AS FLOAT),
+	            CAST(concat_ws('', a.start_0200) AS FLOAT),
+	            CAST(concat_ws('', a.start_0215) AS FLOAT),
+	            CAST(concat_ws('', a.start_0230) AS FLOAT),
+	            CAST(concat_ws('', a.start_0245) AS FLOAT),
+	            CAST(concat_ws('', a.start_0300) AS FLOAT),
+	            CAST(concat_ws('', a.start_0315) AS FLOAT),
+	            CAST(concat_ws('', a.start_0330) AS FLOAT),
+	            CAST(concat_ws('', a.start_0345) AS FLOAT),
+	            CAST(concat_ws('', a.start_0400) AS FLOAT),
+	            CAST(concat_ws('', a.start_0415) AS FLOAT),
+	            CAST(concat_ws('', a.start_0430) AS FLOAT),
+	            CAST(concat_ws('', a.start_0445) AS FLOAT),
+	            CAST(concat_ws('', a.start_0500) AS FLOAT),
+	            CAST(concat_ws('', a.start_0515) AS FLOAT),
+	            CAST(concat_ws('', a.start_0530) AS FLOAT),
+	            CAST(concat_ws('', a.start_0545) AS FLOAT),
+	            CAST(concat_ws('', a.start_0600) AS FLOAT),
+	            CAST(concat_ws('', a.start_0615) AS FLOAT),
+	            CAST(concat_ws('', a.start_0630) AS FLOAT),
+	            CAST(concat_ws('', a.start_0645) AS FLOAT),
+	            CAST(concat_ws('', a.start_0700) AS FLOAT),
+	            CAST(concat_ws('', a.start_0715) AS FLOAT),
+	            CAST(concat_ws('', a.start_0730) AS FLOAT),
+	            CAST(concat_ws('', a.start_0745) AS FLOAT),
+	            CAST(concat_ws('', a.start_0800) AS FLOAT),
+	            CAST(concat_ws('', a.start_0815) AS FLOAT),
+	            CAST(concat_ws('', a.start_0830) AS FLOAT),
+	            CAST(concat_ws('', a.start_0845) AS FLOAT),
+	            CAST(concat_ws('', a.start_0900) AS FLOAT),
+	            CAST(concat_ws('', a.start_0915) AS FLOAT),
+	            CAST(concat_ws('', a.start_0930) AS FLOAT),
+	            CAST(concat_ws('', a.start_0945) AS FLOAT),
+	            CAST(concat_ws('', a.start_1000) AS FLOAT),
+	            CAST(concat_ws('', a.start_1015) AS FLOAT),
+	            CAST(concat_ws('', a.start_1030) AS FLOAT),
+	            CAST(concat_ws('', a.start_1045) AS FLOAT),
+	            CAST(concat_ws('', a.start_1100) AS FLOAT),
+	            CAST(concat_ws('', a.start_1115) AS FLOAT),
+	            CAST(concat_ws('', a.start_1130) AS FLOAT),
+	            CAST(concat_ws('', a.start_1145) AS FLOAT),
+	            CAST(concat_ws('', a.start_1200) AS FLOAT),
+	            CAST(concat_ws('', a.start_1215) AS FLOAT),
+	            CAST(concat_ws('', a.start_1230) AS FLOAT),
+	            CAST(concat_ws('', a.start_1245) AS FLOAT),
+	            CAST(concat_ws('', a.start_1300) AS FLOAT),
+	            CAST(concat_ws('', a.start_1315) AS FLOAT),
+	            CAST(concat_ws('', a.start_1330) AS FLOAT),
+	            CAST(concat_ws('', a.start_1345) AS FLOAT),
+	            CAST(concat_ws('', a.start_1400) AS FLOAT),
+	            CAST(concat_ws('', a.start_1415) AS FLOAT),
+	            CAST(concat_ws('', a.start_1430) AS FLOAT),
+	            CAST(concat_ws('', a.start_1445) AS FLOAT),
+	            CAST(concat_ws('', a.start_1500) AS FLOAT),
+	            CAST(concat_ws('', a.start_1515) AS FLOAT),
+	            CAST(concat_ws('', a.start_1530) AS FLOAT),
+	            CAST(concat_ws('', a.start_1545) AS FLOAT),
+	            CAST(concat_ws('', a.start_1600) AS FLOAT),
+	            CAST(concat_ws('', a.start_1615) AS FLOAT),
+	            CAST(concat_ws('', a.start_1630) AS FLOAT),
+	            CAST(concat_ws('', a.start_1645) AS FLOAT),
+	            CAST(concat_ws('', a.start_1700) AS FLOAT),
+	            CAST(concat_ws('', a.start_1715) AS FLOAT),
+	            CAST(concat_ws('', a.start_1730) AS FLOAT),
+	            CAST(concat_ws('', a.start_1745) AS FLOAT),
+	            CAST(concat_ws('', a.start_1800) AS FLOAT),
+	            CAST(concat_ws('', a.start_1815) AS FLOAT),
+	            CAST(concat_ws('', a.start_1830) AS FLOAT),
+	            CAST(concat_ws('', a.start_1845) AS FLOAT),
+	            CAST(concat_ws('', a.start_1900) AS FLOAT),
+	            CAST(concat_ws('', a.start_1915) AS FLOAT),
+	            CAST(concat_ws('', a.start_1930) AS FLOAT),
+	            CAST(concat_ws('', a.start_1945) AS FLOAT),
+	            CAST(concat_ws('', a.start_2000) AS FLOAT),
+	            CAST(concat_ws('', a.start_2015) AS FLOAT),
+	            CAST(concat_ws('', a.start_2030) AS FLOAT),
+	            CAST(concat_ws('', a.start_2045) AS FLOAT),
+	            CAST(concat_ws('', a.start_2100) AS FLOAT),
+	            CAST(concat_ws('', a.start_2115) AS FLOAT),
+	            CAST(concat_ws('', a.start_2130) AS FLOAT),
+	            CAST(concat_ws('', a.start_2145) AS FLOAT),
+	            CAST(concat_ws('', a.start_2200) AS FLOAT),
+	            CAST(concat_ws('', a.start_2215) AS FLOAT),
+	            CAST(concat_ws('', a.start_2230) AS FLOAT),
+	            CAST(concat_ws('', a.start_2245) AS FLOAT),
+	            CAST(concat_ws('', a.start_2300) AS FLOAT),
+	            CAST(concat_ws('', a.start_2315) AS FLOAT),
+	            CAST(concat_ws('', a.start_2330) AS FLOAT),
+	            CAST(concat_ws('', a.start_2345) AS FLOAT)
+	        ) AS read_array,	
+		'{0}' AS aep_opco,
+		aep_usage_dt,
+		'{1}' AS aep_derived_uom
+		FROM (
+			SELECT
+    			    aep_premise_nb,
+			    serialnumber,
+			    trsf_pole_nb,
+			    xf_meter_cnt,
+			    aep_usage_dt,
+	                    collect_list(aa.key_val['0000']) AS start_0000,
+                            collect_list(aa.key_val['0015']) AS start_0015,
+                            collect_list(aa.key_val['0030']) AS start_0030,
+                            collect_list(aa.key_val['0045']) AS start_0045,
+                            collect_list(aa.key_val['0100']) AS start_0100,
+                            collect_list(aa.key_val['0115']) AS start_0115,
+                            collect_list(aa.key_val['0130']) AS start_0130,
+                            collect_list(aa.key_val['0145']) AS start_0145,
+                            collect_list(aa.key_val['0200']) AS start_0200,
+                            collect_list(aa.key_val['0215']) AS start_0215,
+                            collect_list(aa.key_val['0230']) AS start_0230,
+                            collect_list(aa.key_val['0245']) AS start_0245,
+                            collect_list(aa.key_val['0300']) AS start_0300,
+                            collect_list(aa.key_val['0315']) AS start_0315,
+                            collect_list(aa.key_val['0330']) AS start_0330,
+                            collect_list(aa.key_val['0345']) AS start_0345,
+                            collect_list(aa.key_val['0400']) AS start_0400,
+                            collect_list(aa.key_val['0415']) AS start_0415,
+                            collect_list(aa.key_val['0430']) AS start_0430,
+                            collect_list(aa.key_val['0445']) AS start_0445,
+                            collect_list(aa.key_val['0500']) AS start_0500,
+                            collect_list(aa.key_val['0515']) AS start_0515,
+                            collect_list(aa.key_val['0530']) AS start_0530,
+                            collect_list(aa.key_val['0545']) AS start_0545,
+                            collect_list(aa.key_val['0600']) AS start_0600,
+                            collect_list(aa.key_val['0615']) AS start_0615,
+                            collect_list(aa.key_val['0630']) AS start_0630,
+                            collect_list(aa.key_val['0645']) AS start_0645,
+                            collect_list(aa.key_val['0700']) AS start_0700,
+                            collect_list(aa.key_val['0715']) AS start_0715,
+                            collect_list(aa.key_val['0730']) AS start_0730,
+                            collect_list(aa.key_val['0745']) AS start_0745,
+                            collect_list(aa.key_val['0800']) AS start_0800,
+                            collect_list(aa.key_val['0815']) AS start_0815,
+                            collect_list(aa.key_val['0830']) AS start_0830,
+                            collect_list(aa.key_val['0845']) AS start_0845,
+                            collect_list(aa.key_val['0900']) AS start_0900,
+                            collect_list(aa.key_val['0915']) AS start_0915,
+                            collect_list(aa.key_val['0930']) AS start_0930,
+                            collect_list(aa.key_val['0945']) AS start_0945,
+                            collect_list(aa.key_val['1000']) AS start_1000,
+                            collect_list(aa.key_val['1015']) AS start_1015,
+                            collect_list(aa.key_val['1030']) AS start_1030,
+                            collect_list(aa.key_val['1045']) AS start_1045,
+                            collect_list(aa.key_val['1100']) AS start_1100,
+                            collect_list(aa.key_val['1115']) AS start_1115,
+                            collect_list(aa.key_val['1130']) AS start_1130,
+                            collect_list(aa.key_val['1145']) AS start_1145,
+                            collect_list(aa.key_val['1200']) AS start_1200,
+                            collect_list(aa.key_val['1215']) AS start_1215,
+                            collect_list(aa.key_val['1230']) AS start_1230,
+                            collect_list(aa.key_val['1245']) AS start_1245,
+                            collect_list(aa.key_val['1300']) AS start_1300,
+                            collect_list(aa.key_val['1315']) AS start_1315,
+                            collect_list(aa.key_val['1330']) AS start_1330,
+                            collect_list(aa.key_val['1345']) AS start_1345,
+                            collect_list(aa.key_val['1400']) AS start_1400,
+                            collect_list(aa.key_val['1415']) AS start_1415,
+                            collect_list(aa.key_val['1430']) AS start_1430,
+                            collect_list(aa.key_val['1445']) AS start_1445,
+                            collect_list(aa.key_val['1500']) AS start_1500,
+                            collect_list(aa.key_val['1515']) AS start_1515,
+                            collect_list(aa.key_val['1530']) AS start_1530,
+                            collect_list(aa.key_val['1545']) AS start_1545,
+                            collect_list(aa.key_val['1600']) AS start_1600,
+                            collect_list(aa.key_val['1615']) AS start_1615,
+                            collect_list(aa.key_val['1630']) AS start_1630,
+                            collect_list(aa.key_val['1645']) AS start_1645,
+                            collect_list(aa.key_val['1700']) AS start_1700,
+                            collect_list(aa.key_val['1715']) AS start_1715,
+                            collect_list(aa.key_val['1730']) AS start_1730,
+                            collect_list(aa.key_val['1745']) AS start_1745,
+                            collect_list(aa.key_val['1800']) AS start_1800,
+                            collect_list(aa.key_val['1815']) AS start_1815,
+                            collect_list(aa.key_val['1830']) AS start_1830,
+                            collect_list(aa.key_val['1845']) AS start_1845,
+                            collect_list(aa.key_val['1900']) AS start_1900,
+                            collect_list(aa.key_val['1915']) AS start_1915,
+                            collect_list(aa.key_val['1930']) AS start_1930,
+                            collect_list(aa.key_val['1945']) AS start_1945,
+                            collect_list(aa.key_val['2000']) AS start_2000,
+                            collect_list(aa.key_val['2015']) AS start_2015,
+                            collect_list(aa.key_val['2030']) AS start_2030,
+                            collect_list(aa.key_val['2045']) AS start_2045,
+                            collect_list(aa.key_val['2100']) AS start_2100,
+                            collect_list(aa.key_val['2115']) AS start_2115,
+                            collect_list(aa.key_val['2130']) AS start_2130,
+                            collect_list(aa.key_val['2145']) AS start_2145,
+                            collect_list(aa.key_val['2200']) AS start_2200,
+                            collect_list(aa.key_val['2215']) AS start_2215,
+                            collect_list(aa.key_val['2230']) AS start_2230,
+                            collect_list(aa.key_val['2245']) AS start_2245,
+                            collect_list(aa.key_val['2300']) AS start_2300,
+                            collect_list(aa.key_val['2315']) AS start_2315,
+                            collect_list(aa.key_val['2330']) AS start_2330,
+                            collect_list(aa.key_val['2345']) AS start_2345 
+			FROM (
+				SELECT
+		                        aep_premise_nb,
+		                        serialnumber,
+					trsf_pole_nb,
+					xf_meter_cnt,
+		                        map(concat(substr(starttimeperiod,12,2), substr(starttimeperiod,15,2)), aep_raw_value) AS key_val,
+		                        COUNT(*) OVER (PARTITION BY aep_premise_nb, serialnumber, substr(starttimeperiod,1,10)) AS read_count,
+		                        MIN(aep_raw_value) OVER (PARTITION BY aep_premise_nb, serialnumber, substr(starttimeperiod,1,10)) AS low_read,
+					CASE WHEN aep_raw_value IS NULL THEN 1 ELSE 0 END AS has_null,
+					substr(starttimeperiod,1,10) AS aep_usage_dt
+				FROM voltages
+				WHERE mod(unix_timestamp(concat(substr(starttimeperiod,1,10), substr(starttimeperiod,12,8)), 'yyyy-MM-ddHH:mm:ss'), 15 * 60) = 0
+			) aa
+			WHERE COALESCE(low_read, 1) > 0
+			AND read_count = 96
+			AND has_null = 0
+			GROUP BY
+			    aep_premise_nb,
+			    serialnumber,
+			    trsf_pole_nb,
+			    xf_meter_cnt,
+			    aep_usage_dt
+		) a""".format(aep_opco, aep_derived_uom)).cache()
+
+        w = Window.partitionBy("serialnumber")
+
+        # Self join to get all other meter arrays on the transformer then average them at each interval
+        xfmr_df = array_df.alias("mdf")\
+		.join(array_df.alias("tdf"),\
+			[F.col("mdf.trsf_pole_nb") == F.col("tdf.trsf_pole_nb"),\
+			F.col("mdf.aep_usage_dt") == F.col("tdf.aep_usage_dt"),\
+			F.col("mdf.serialnumber") != F.col("tdf.serialnumber")])\
+		.select("mdf.aep_premise_nb",\
+			"mdf.serialnumber",\
+			"mdf.trsf_pole_nb",\
+			"mdf.xf_meter_cnt",\
+			"mdf.read_array",\
+			F.col("tdf.read_array").alias("xf_read_array"),\
+			"mdf.aep_opco",\
+			"mdf.aep_usage_dt",\
+			"mdf.aep_derived_uom")\
+		.groupby("aep_premise_nb",\
+			"serialnumber",\
+			"trsf_pole_nb",\
+			"xf_meter_cnt",\
+			"read_array",\
+			"aep_opco",\
+			"aep_usage_dt",\
+			"aep_derived_uom")\
+		.agg(F.array(*[F.avg(F.col("xf_read_array")[i]) for i in range(96)]).alias("xf_read_array"))\
+		.cache()
+
+        # Calculate transformer average without removing any serial numbers
+        xf_df = xfmr_df\
+                .groupBy("trsf_pole_nb", "aep_usage_dt")\
+                .agg(F.array(*[F.avg(F.col("read_array")[i]) for i in range(96)]).alias("xf_read_array_whole"))
+
+        # Now join the read array whole data frame from above back to the main dataset
+        xfmr_df = xfmr_df.alias("x")\
+                .join(xf_df.alias("t"),\
+                        [F.col("x.trsf_pole_nb") == F.col("t.trsf_pole_nb")])\
+                .select("x.*", "t.xf_read_array_whole")
+
+
+        # User defined functions for comparison calculations
+        norm_udf = F.udf(lambda x: DenseVector(x).norm(2).item(), FloatType())
+
+        def normalized_array(x, norm):
+            return Vectors.dense(x) / norm
+
+        def euclidean_distance(x, y):
+            return sqrt(Vectors.squared_distance(x, y)) 
+
+        def cosine_sim(x, y):
+            xx = DenseVector(x)
+            yy = DenseVector(y)
+            return float(xx.dot(yy) / ( xx.norm(2) * yy.norm(2) ))
+
+        def shape_mismatch(x, y):
+            x_last = 0
+            y_last = 0
+            c = 0
+            for i in range(len(x)):
+                if (x[i] >= x_last and y[i] >= y_last) or (x[i] < x_last and y[i] < y_last):
+                    x_last = x[i]
+                    y_last = y[i]
+                    continue
+                else:
+                    c += 1
+                    x_last = x[i]
+                    y_last = y[i]
+            return c
+
+        # Apply UDFs to each array pairing  
+        final_df = xfmr_df\
+		.withColumn("array_norm", norm_udf("read_array"))\
+		.withColumn("xf_array_norm", norm_udf("xf_read_array"))\
+		.withColumn("array_normalized", F.udf(normalized_array, VectorUDT())("read_array", "array_norm"))\
+		.withColumn("xf_normalized", F.udf(normalized_array, VectorUDT())("xf_read_array", "xf_array_norm"))\
+		.withColumn("eucl_dist", F.udf(euclidean_distance, FloatType())("array_normalized", "xf_normalized"))\
+                .withColumn("cos_sim", F.udf(cosine_sim, FloatType())("array_normalized", "xf_normalized"))\
+		.withColumn("shape_mismatch_cnt", F.udf(shape_mismatch, IntegerType())("read_array", "xf_read_array"))\
+		.select("aep_premise_nb", "serialnumber", "trsf_pole_nb", "xf_meter_cnt", "eucl_dist",\
+			"cos_sim", "read_array", "xf_read_array", "xf_read_array_whole",\
+			"shape_mismatch_cnt", "aep_opco", "aep_usage_dt", "aep_derived_uom")
+
+
+        # Now write the final results. Partitioned by opco, date, uom
+        final_df.write\
+    	    .format("orc")\
+		.partitionBy("aep_opco", "aep_usage_dt", "aep_derived_uom")\
+	        .mode("append")\
+	        .option("path", hdfs_target)\
+	        .option("compression", "snappy")\
+	        .save()
+
+        print_log("INFO", "Partition " + hdfs_source + " successfully loaded.")
+
+        ### End loop of 1 day
+
+
+    ### Fin
+    print_log("INFO", "Load succeeded in " + str(time() - s) + " seconds.")
+
+    exit()

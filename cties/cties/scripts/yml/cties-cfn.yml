@@ -1,0 +1,1095 @@
+##/**------------------------------------------------------------------------------------------**/
+##/**    AMERICAN ELECTRIC POWER - CTIES cties-cfn CFN script           **/
+##/**------------------------------------------------------------------------------------------**/
+##/**                               Confidentiality Information:                               **/
+##/**                               Copyright 2022, 2023 by                                    **/
+##/**                               American Electric Power                                    **/
+##/**                                                                                          **/
+##/** This module is confidential and proprietary information of American Electric             **/
+##/** Power, it is not to be copied or reproduced in any form, by any means, in                **/
+##/** whole or in part, nor is it to be used for any purpose other than that for               **/
+##/** which it is expressly provide without written permission of AEP.                         **/
+##/**------------------------------------------------------------------------------------------**/
+##/** AEP Custom Changes                                                                       **/
+##/**  Version #   Name                     Date            Description                        **/
+##/**   V0.1       Diganta                  03/20/2022      First Attempt in CloudFormation    **/
+##/**   V0.2       Diganta                  05/03/2022      Secod Attempt in CloudFormation    **/
+##/**------------------------------------------------------------------------------------------**/
+
+AWSTemplateFormatVersion: 2010-09-09
+Description: CTIES GIS/EO Meter-Transformer Mapping and Voltage Summary GlueETL CFN Script
+
+
+## Note: Command to create Stack via CLI
+## aws cloudformation deploy \
+## --template cties-cfn.yml \
+## --stack-name cties-cfn \
+## --tags BusinessUnit=ITCORP \
+##        Owner=analytics_hadoop@aep.com \
+##        map-migrated=d-server-01lbno209ea5yq \
+##        map-migrated-app=Hadoop_Prod \
+## --capabilities "CAPABILITY_NAMED_IAM" \
+## --no-fail-on-empty-changeset \
+## --parameter-overrides pEnvironment=dev 
+
+## aws cloudformation update-stack \
+## --template cties-cfn.yml \
+## --stack-name cties-cfn \
+## --tags BusinessUnit=ITCORP \
+##        Owner=analytics_hadoop@aep.com \
+##        map-migrated=d-server-01lbno209ea5yq \
+##        map-migrated-app=Hadoop_Prod \
+## --capabilities "CAPABILITY_NAMED_IAM" \
+## --no-fail-on-empty-changeset \
+## --parameter-overrides pEnvironment=dev 
+
+
+## Define Parameters
+
+Parameters:
+ 
+  ## Env
+  pEnvironment:
+    Description: AEP Lifecycle Environment
+    Type: String
+    Default: dev
+    AllowedValues: [ dev, qa, prod ]
+
+## JobNames and CodeBucket
+
+## Lambda 
+# pLambdaFunctionName
+  pLambdaFuncLandingToRawName:
+    Type: String
+    AllowedPattern: "[a-zA-Z0-9]+[a-zA-Z0-9-]+[a-zA-Z0-9]+"
+    Default: cties-meter-xfmr-map-landing-raw-lambda
+
+  pLambdaFuncFreqIdentifierName:
+    Type: String
+    AllowedPattern: "[a-zA-Z0-9]+[a-zA-Z0-9-]+[a-zA-Z0-9]+"
+    Default: cties-freq-identifier-lambda
+
+#pGlueETLJobName
+  pGlueETLJobNameRawToStg:
+    Type: String
+    AllowedPattern: "[a-zA-Z0-9]+[a-zA-Z0-9-]+[a-zA-Z0-9]+"
+    Default: cties-meter-xfmr-map-raw-stg
+
+  pGlueETLJobNameMeterPremise:
+    Type: String
+    Default: cties-meter-premise-src-stg
+
+  pGlueETLJobNameStgToConsume:
+    Type: String
+    AllowedPattern: "[a-zA-Z0-9]+[a-zA-Z0-9-]+[a-zA-Z0-9]+"
+    Default: cties-meter-xfmr-map-stg-consume
+
+  pGlueETLJobNameVoltgSumm:
+    Type: String
+    AllowedPattern: "[a-zA-Z0-9]+[a-zA-Z0-9-]+[a-zA-Z0-9]+"
+    Default: cties-meter-xfmr-voltg-summ
+
+  pGlueETLJobNameRandomForest:
+    Type: String
+    AllowedPattern: "[a-zA-Z0-9]+[a-zA-Z0-9-]+[a-zA-Z0-9]+"
+    Default: cties-random-forest
+
+  pGlueETLJobNameRetie:
+    Type: String
+    AllowedPattern: "[a-zA-Z0-9]+[a-zA-Z0-9-]+[a-zA-Z0-9]+"
+    Default: cties-retie 
+
+  pRandomForestJoblibFilePath:
+    Type: String
+    Default: cties/Training_Data/Rf_tiesV1.joblib
+  
+## Useful Buckets
+  pCodeBucket:
+    Description: Bucket where Base Code resides (exclude dev,qa,prod)
+    Type: String
+    Default: 'aep-datalake-apps'
+
+  pS3DataLandingBucket:
+    Description: Bucket where S3 Landing Dataset resides (exclude dev,qa,prod in the name)
+    Type: String
+    Default: 'aep-dl-landing'
+
+  pS3DataRawBucket:
+    Description: Bucket where S3 Raw Dataset resides (exclude dev,qa,prod in the name)
+    Type: String
+    Default: 'aep-datalake-raw'
+
+  pS3DataWorkBucket:
+    Description: Bucket where S3 work Dataset resides (exclude dev,qa,prod in the name)
+    Type: String
+    Default: 'aep-datalake-work'
+  
+  pS3DataConsumeBucket:
+    Description: Bucket where S3 consume Dataset resides (exclude dev,qa,prod in the name)
+    Type: String
+    Default: 'aep-datalake-consume' 
+
+  pS3DataTransformBucket:
+    Description: Bucket where S3 transform Dataset resides (exclude dev,qa,prod in the name)
+    Type: String
+    Default: 'aep-datalake-transform'
+
+  pS3DataNonVeeConsumeBucket:
+    Description: Bucket where S3 NonVee Consume Dataset resides (exclude dev,qa,prod in the name)
+    Type: String
+    Default: 'aep-dl-consume-nonvee'
+  
+  pS3DataLogBucket:
+    Description: Bucket where S3 log Dataset resides 
+    Type: String
+    Default: 'aep-dl-log'
+
+  # pAwsRegion:
+  #   Description: Bucket where S3 Raw Dataset resides 
+  #   Type: String
+  #   Default: 'us-east-1'
+
+## SNS Topic
+  pSNSTopicName:
+    Type: String
+    AllowedPattern: "[a-zA-Z0-9]+[a-zA-Z0-9-]+[a-zA-Z0-9]+"
+    Default: aep-dl-SNS
+
+## StepFunction
+  pStepFunctionName:
+    Type: String
+    Description: Function Name
+    Default: 'aep-sf2-cties'
+
+## Define Mappings for jdbc conn
+Mappings: 
+  AWS:
+    vpcIDs:
+      dev: vpc-045f887b9cf0be9b4
+      qa: vpc-045f887b9cf0be9b4
+      prod: vpc-045f887b9cf0be9b4
+      sandbox: vpc-04ca6f6abdee26d66
+    subnetIDs:
+      dev: subnet-09ef53ca9f82fc4ea
+      qa: subnet-09ef53ca9f82fc4ea
+      prod: subnet-0b813a421368ec469
+      sandbox: subnet-0aac2e6d1cc83c1f2
+    map-migrated-app:
+      dev: Hadoop_Dev
+      qa: Hadoop_Prod
+      prod: Hadoop_Prod
+      sandbox: Hadoop_Dev
+    avalibilityzoneIds:
+      dev: us-east-1d
+      qa: us-east-1b
+      prod: us-east-1d
+    pgatewaydbsecretid:
+      dev: /aep/datalake/dev/mv90/db/utl_login
+      qa: /aep/datalake/qa/mv90/db/utl_login
+      prod: /aep/datalake/prod/mv90/db/utl_login
+
+## Define Resource Definitions to be built
+
+Resources:
+
+  rVoltgSummRunIntervalParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/aep/analytics/hdp/${pEnvironment}/cties/parms/voltg_summ_run_interval"   #SSM_RUN_INTERVAL_NAME
+      Type: String
+      Value: "14"
+      Description: SSM Parameter for voltg_summ_run_interval.
+      Tags: {'Owner':'analytics_generation@aep.com', 'Team':'Analytics Hadoop', 'ProductName':'SSM', 'BusinessUnit':'ITCORP', 'BackUp':'False', 'UseCase':'CTIES','Step':'Run_Interval Value'}
+       
+  
+  ## JDBC Connection for ansersds.meter_premise_vw
+  rGlueConnection:
+    Type: AWS::Glue::Connection
+    Properties:
+      CatalogId: !Sub ${AWS::AccountId}
+      ConnectionInput: 
+        Description: "JDBC connection for Glue Jobs"
+        ConnectionType: "JDBC"
+        ConnectionProperties:
+          USERNAME: !Join ['',  ['{{resolve:secretsmanager:', !FindInMap [AWS,pgatewaydbsecretid,!Ref pEnvironment], ':SecretString:username}}' ]]
+          PASSWORD: !Join ['',  ['{{resolve:secretsmanager:', !FindInMap [AWS,pgatewaydbsecretid,!Ref pEnvironment], ':SecretString:password}}' ]]
+          JDBC_CONNECTION_URL:  !Sub 
+                                  - "jdbc:oracle:thin:@(DESCRIPTION=(ADDRESS_LIST=(ADDRESS=(PROTOCOL=TCP)(HOST='{{resolve:secretsmanager:${secretid}:SecretString:host}}')(PORT='{{resolve:secretsmanager:${secretid}:SecretString:port}}')))(CONNECT_DATA=(SERVICE_NAME='{{resolve:secretsmanager:${secretid}:SecretString:dbname}}')))"
+                                  - {secretid: !FindInMap [AWS,pgatewaydbsecretid,!Ref pEnvironment]}
+        PhysicalConnectionRequirements:
+          AvailabilityZone: !FindInMap [AWS, avalibilityzoneIds, !Ref pEnvironment]
+          SecurityGroupIdList:
+             - !ImportValue SelfReferenceSecurityGroupId
+             #- !ImportValue sg_glue_etl_s3
+          SubnetId:  !FindInMap [AWS, subnetIDs, !Ref pEnvironment]
+        Name: !Sub "cties_meter_premise_jdbc_connection_${pEnvironment}"  
+
+## Create Lambda IAM Role
+  rLambdaFunctionIAMRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      RoleName: !Sub "cties-lambda-execution-role-${pEnvironment}"
+      Policies:
+        - PolicyName: aep_dl_app_lambda_policy_cties_logs
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Effect: Allow
+                Resource: '*'
+                ##  - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${pLambdaFuncLandingToRawName}:*
+
+        - PolicyName: aep_dl_app_lambda_policy_cties_glue
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                  - glue:StartJobRun
+                  - glue:GetJobRun
+                  - glue:GetJobRuns
+                  - glue:GetJob
+                Effect: Allow
+                Resource: !Sub "arn:aws:glue:*:${AWS::AccountId}:job/cties*"
+
+        - PolicyName: aep_dl_app_lambda_policy_cties_s3
+          PolicyDocument:
+            Statement:
+              - Action:
+                  - s3:List*
+                  - s3:Get*
+                  - s3:Create*
+                  - s3:Put*
+                  - s3:RestoreObject
+                  - s3:AbortMultipartUpload
+                  - s3:InitiateReplication
+                  - s3:DeleteObject
+                Effect: Allow
+                Resource: 
+                  - !Sub 'arn:aws:s3:::${pS3DataLandingBucket}-${pEnvironment}/*'
+                  - !Sub 'arn:aws:s3:::${pS3DataLandingBucket}-${pEnvironment}'
+                  - !Sub 'arn:aws:s3:::${pS3DataLandingBucket}-${pEnvironment}/util/cties/*'
+                  - !Sub 'arn:aws:s3:::${pS3DataRawBucket}-${pEnvironment}'
+                  - !Sub 'arn:aws:s3:::${pS3DataRawBucket}-${pEnvironment}/*'
+                  - !Sub 'arn:aws:s3:::${pS3DataRawBucket}-${pEnvironment}/util/cties/*'
+                  - !Sub "arn:aws:s3:::${pS3DataLogBucket}-${pEnvironment}/*"
+                  - !Sub "arn:aws:s3:::${pS3DataLogBucket}-${pEnvironment}"
+                  - !Sub "arn:aws:s3:::${pS3DataLogBucket}-${pEnvironment}/glueetl/temporary/*"
+                  - !Sub "arn:aws:s3:::${pS3DataLogBucket}-${pEnvironment}glueetl/sparkHistoryLogs/*"
+              - Action:
+                  - s3:List*
+                  - s3:Get*
+                Effect: Allow
+                Resource:
+                  - !Sub "arn:aws:s3:::aep-datalake-apps-${pEnvironment}"
+                  - !Sub "arn:aws:s3:::aep-datalake-apps-${pEnvironment}/*"
+
+        - PolicyName: aep_dl_app_lambda_policy_cties_kms
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                  - kms:Decrypt
+                  - kms:Encrypt
+                  - kms:Get*
+                  - kms:List*
+                  - kms:DescribeCustomKeyStores
+                  - kms:DescribeKey
+                  - kms:GenerateDataKey
+
+                Effect: Allow
+                Resource: 
+                  # '*'
+                  - !ImportValue s3KMSKeyArn
+                  - arn:aws:kms:us-east-1:292805373755:key/a3023ed0-948d-4af9-bc91-f6fa16cda59f  ## to be removed prod
+                  # - arn:aws:kms:us-east-1:889415020100:key/5936e2d8-4b42-4f25-a643-30044d1a1142  ## to be removed prod
+
+        - PolicyName: aep_dl_app_lambda_policy_cties_ssm_param
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                  - ssm:List*
+                  - ssm:Update*
+                  - ssm:Get*
+                  - ssm:Describe*
+                  - ssm:Put*
+                  - ssm:ModifyDocumentPermission
+                Effect: Allow
+                Resource:
+                  - !Sub "arn:aws:ssm:*:${AWS::AccountId}:parameter/aep/analytics/hdp/${pEnvironment}/cties/*"
+                  - !Sub "arn:aws:ssm:*:${AWS::AccountId}:parameter/aep/analytics/hdp/${pEnvironment}/cties/parms/*"
+        
+        - PolicyName: aep_dl_app_lambda_policy_cties_sns
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                - "sns:Publish"
+                - "sns:List*"
+                - "sns:Get*"
+                Effect: Allow
+                Resource: 
+                  - !Sub "arn:aws:sns:us-east-1:${AWS::AccountId}:${pSNSTopicName}-success-${pEnvironment}"
+                  - !Sub "arn:aws:sns:us-east-1:${AWS::AccountId}:${pSNSTopicName}-failure-${pEnvironment}"
+
+        - PolicyName: aep_dl_app_lambda_policy_cties_stepfunc
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                  - "states:StartExecution"
+                  - "states:StopExecution"
+                  - "states:SendTaskSuccess"
+                  - "states:SendTaskFailure"
+                  - "states:StartSyncExecution"
+                  - "states:TagResource"
+                  - "states:DescribeActivity"
+                  - "states:DescribeExecution"
+                  - "states:DescribeStateMachine"
+                  - "states:DescribeStateMachineForExecution"
+                  - "states:GetActivityTask"
+                  - "states:GetExecutionHistory"
+                  - "states:ListActivities"
+                  - "states:ListExecutions"
+                  - "states:ListMapRuns"
+                  - "states:ListStateMachines"
+                  - "states:ListTagsForResource"
+                  - "states:SendTaskHeartbeat"
+                  - "states:UntagResource"
+                  - "states:UpdateMapRun"
+                  - "states:UpdateStateMachine"
+                  - "states:Create*"
+                  - "states:Describe*"
+
+                Effect: Allow
+                Resource: !Sub "arn:aws:states:*:${AWS::AccountId}:stateMachine:${pStepFunctionName}"
+
+      # ManagedPolicyArns:
+      #   - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+      PermissionsBoundary: !Sub "arn:aws:iam::${AWS::AccountId}:policy/AEPCloudBoundary"
+
+## Lambda Invoke Permission 
+  rLandingLambdaInvokePermission:
+    Type: 'AWS::Lambda::Permission'
+    Properties:
+      FunctionName: !Ref rLandingToRawLambdaFunction
+      Action: 'lambda:InvokeFunction'
+      Principal: s3.amazonaws.com
+      SourceAccount: !Ref 'AWS::AccountId'
+      SourceArn: !Sub "arn:aws:s3:::${pS3DataLandingBucket}-${pEnvironment}"
+
+  rLandingToRawLambdaversion:
+    Type: AWS::Lambda::Version
+    DependsOn: rLandingToRawLambdaFunction
+    Properties:
+      FunctionName: !Ref rLandingToRawLambdaFunction
+
+  LambdaAsyncconfig:
+    Type: AWS::Lambda::EventInvokeConfig
+    DependsOn: rLandingToRawLambdaFunction
+    Properties:
+      DestinationConfig:
+        OnFailure:
+          Destination: !Sub "arn:aws:sns:us-east-1:${AWS::AccountId}:aep-dl-SNS-failure-${pEnvironment}"
+      FunctionName: !Ref rLandingToRawLambdaFunction
+      #MaximumEventAgeInSeconds: 21600
+      #MaximumRetryAttempts: 0
+      Qualifier: !GetAtt rLandingToRawLambdaversion.Version
+
+  #S3LandingBucket:
+    #Type: AWS::S3::Bucket
+    #DeletionPolicy: Retain
+    #DependsOn:
+      #- rLandingToRawLambdaFunction
+    #Properties:
+      ##BucketName: !Sub "${pS3DataLandingBucket}-${pEnvironment}"
+      ##BucketName: !Sub "arn:aws:s3:::${pS3DataLandingBucket}-${pEnvironment}"
+      #NotificationConfiguration:
+        #LambdaConfigurations:
+          #- Event: s3:ObjectCreated:*
+            #Function: !GetAtt rLandingToRawLambdaFunction.Arn
+            #BucketName: !Sub "${pS3DataLandingBucket}-${pEnvironment}"
+            #Filter:
+              #S3Key:
+                #Rules:
+                  #- Name: "prefix"
+                    #Value: "util/cties/"
+                  #- Name: "suffix"
+                    #Value: ".csv"
+
+## Lambda Function  
+  rLandingToRawLambdaFunction:
+    Type: AWS::Lambda::Function
+    DependsOn: 
+      - rLambdaFunctionIAMRole
+    Properties:
+      Description: "Lambda Trigger for GS3 NSPL/PLC Extracts into LERS"
+      FunctionName: !Sub '${pLambdaFuncLandingToRawName}'
+      Code:
+        S3Bucket: !Sub '${pCodeBucket}-${pEnvironment}'
+        S3Key: hdpapp/cties/lambda/cties-meter-xfmr-map-landing-raw-lambda-V1.zip
+      Handler: cties-meter-xfmr-map-landing-raw-lambda.lambda_handler
+      MemorySize: 512
+      Timeout: 900
+      Role: !GetAtt rLambdaFunctionIAMRole.Arn
+      Runtime: python3.8
+      TracingConfig:
+        Mode: Active
+      Tags:
+        - Key: Owner
+          Value: "analytics_hadoop@aep.com"
+        - Key: Team
+          Value: "Analytics Hadoop"
+        - Key: ProductName
+          Value: "Lambda"
+        - Key: BusinessUnit
+          Value: "ITCORP"
+        - Key: BackUp
+          Value: "False"
+        - Key: UseCase
+          Value: "CTIES"
+        - Key: Step
+          Value: "Lambda-Landing-to-raw - CTies"
+ 
+      Environment:
+        Variables:
+          AWS_ENV: !Sub '${pEnvironment}'
+          S3_DATA_LANDING: !Sub '${pS3DataLandingBucket}'
+          S3_DATA_RAW: !Sub '${pS3DataRawBucket}'
+          S3_DATA_WORK: !Sub '${pS3DataWorkBucket}'
+          S3_DATA_CONSUME: !Sub '${pS3DataConsumeBucket}'
+          VAR_SNS_TOPIC: !Sub "arn:aws:sns:us-east-1:${AWS::AccountId}:${pSNSTopicName}-success-${pEnvironment},arn:aws:sns:us-east-1:${AWS::AccountId}:${pSNSTopicName}-failure-${pEnvironment}"
+          VAR_STATEMACHINE_ARN: !Sub "arn:aws:states:us-east-1:${AWS::AccountId}:stateMachine:${pStepFunctionName}"
+
+  rFreqIdentifierLambdaFunction:
+    Type: AWS::Lambda::Function
+    DependsOn: 
+      - rLambdaFunctionIAMRole
+    Properties:
+      Description: "Lambda Trigger for CTIES freq identifier"
+      FunctionName: !Sub '${pLambdaFuncFreqIdentifierName}'
+      Code:
+        S3Bucket: !Sub '${pCodeBucket}-${pEnvironment}'
+        S3Key: hdpapp/cties/lambda/cties-freq-identifier-lambda.zip
+      Handler: cties-freq-identifier-lambda.lambda_handler
+      MemorySize: 512
+      Timeout: 900
+      Role: !GetAtt rLambdaFunctionIAMRole.Arn
+      Runtime: python3.8
+      TracingConfig:
+        Mode: Active
+      Tags:
+        - Key: Owner
+          Value: "analytics_hadoop@aep.com"
+        - Key: Team
+          Value: "Analytics Hadoop"
+        - Key: ProductName
+          Value: "Lambda"
+        - Key: BusinessUnit
+          Value: "ITCORP"
+        - Key: BackUp
+          Value: "False"
+        - Key: UseCase
+          Value: "CTIES"
+        - Key: Step
+          Value: "cties freq identifier - CTies"
+      Environment:
+        Variables:
+          SSM_RUN_INTERVAL_NAME : !Sub "/aep/analytics/hdp/${pEnvironment}/cties/parms/voltg_summ_run_interval"
+          SSM_LAST_RUN_AEP_USAGE_DT_TO_NAME : !Sub "/aep/analytics/hdp/${pEnvironment}/cties/parms/retie_last_run_aep_usage_dt_to"
+
+## GLUE Job IAM Role
+  rGlueExecutionIAMRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: glue.amazonaws.com
+            Action: sts:AssumeRole
+
+      RoleName: !Sub "aep-dl-cties-glue-execution-role-${pEnvironment}"
+      Policies:
+        - PolicyName: aep_dl_app_glue_policy_cties_glue
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                - "glue:BatchCreatePartition"
+                - "glue:List*"
+                - "glue:Get*"
+                - "glue:CreatePartition"
+                - "glue:Update*"
+                - "glue:GetTableVersions"
+                - "glue:GetTableVersion"
+                Effect: Allow
+                Resource: 
+                  - !Sub "arn:aws:glue:*:${AWS::AccountId}:connection/*"
+                  - !Sub "arn:aws:glue:*:${AWS::AccountId}:catalog/*"
+                  - !Sub "arn:aws:glue:*:${AWS::AccountId}:catalog"
+                  - !Sub "arn:aws:glue:*:${AWS::AccountId}:database/stg_cties"
+                  - !Sub "arn:aws:glue:*:${AWS::AccountId}:database/cties"  
+                  - !Sub "arn:aws:glue:*:${AWS::AccountId}:database/usage_nonvee"  ##NonVee DB 
+                  - !Sub "arn:aws:glue:*:${AWS::AccountId}:table/stg_cties/*"
+                  - !Sub "arn:aws:glue:*:${AWS::AccountId}:table/cties/*"
+                  - !Sub "arn:aws:glue:*:${AWS::AccountId}:table/usage_nonvee/*"   ##NonVee Table  
+                  - !Sub "arn:aws:glue:*:${AWS::AccountId}:tableVersion/*/*/*"
+                 
+              - Action:
+                - "glue:Get*"
+                - "glue:StartJobRun"
+                - "glue:List*"
+                - "glue:Start*"
+                - "glue:Stop*"
+                - "glue:GetJobRun"
+                - "glue:GetJobRuns"
+                - "glue:GetJob"
+
+                Effect: Allow
+                Resource: 
+                  - !Sub "arn:aws:glue:*:${AWS::AccountId}:database/default" 
+                  - !Sub "arn:aws:glue:*:${AWS::AccountId}:table/default/*"   
+                  - !Sub "arn:aws:glue:${AWS::Region}:${AWS::AccountId}:database/global_temp" 
+                  - !Sub "arn:aws:glue:${AWS::Region}:${AWS::AccountId}:table/global_temp/*"
+                  - !Sub "arn:aws:glue:*:${AWS::AccountId}:job/cties*"   
+
+              # - Action:
+              #     - ec2:Create*
+              #     - ec2:Delete*
+              #     - ec2:Describe*
+              #   Effect: Allow
+              #   Resource:
+              #     - !Sub "arn:aws:ec2:*:${AWS::AccountId}:network-interface/*"
+              #     - !Sub "arn:aws:ec2:*:${AWS::AccountId}:security-group/*"
+              #     - !Sub "arn:aws:ec2:*:${AWS::AccountId}:instance/*"
+              #     - !Sub "arn:aws:ec2:*:${AWS::AccountId}:elastic-ip/*" 
+
+        - PolicyName: aep_dl_app_glue_policy_cties_log
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Effect: Allow
+                Resource: 
+                  - !Sub "arn:aws:logs:*:*:/aws-glue/*"
+
+        - PolicyName: aep_dl_app_glue_policy_cties_s3
+          PolicyDocument:
+            Statement:
+              - Action:
+                - "s3:List*"
+                - "s3:Get*"
+                - "s3:InitiateReplication"
+                - "s3:PutObject"
+                - "s3:GetObject"
+                - "s3:DeleteObject"
+                - s3:RestoreObject
+                - s3:AbortMultipartUpload
+                - s3:Create*
+                - s3:Put*
+
+                Effect: Allow
+                Resource: 
+                  - !Sub "arn:aws:s3:::${pS3DataLogBucket}-${pEnvironment}/*"
+                  - !Sub "arn:aws:s3:::${pS3DataLogBucket}-${pEnvironment}"
+                  - !Sub "arn:aws:s3:::${pS3DataLogBucket}-${pEnvironment}/glueetl/temporary/*"
+                  - !Sub "arn:aws:s3:::${pS3DataLogBucket}-${pEnvironment}glueetl/sparkHistoryLogs/*"
+
+                  - !Sub 'arn:aws:s3:::${pS3DataRawBucket}-${pEnvironment}'
+                  - !Sub 'arn:aws:s3:::${pS3DataRawBucket}-${pEnvironment}/util/cties/*'
+                  
+                  - !Sub 'arn:aws:s3:::${pS3DataWorkBucket}-${pEnvironment}'
+                  - !Sub 'arn:aws:s3:::${pS3DataWorkBucket}-${pEnvironment}/*'
+                  - !Sub 'arn:aws:s3:::${pS3DataWorkBucket}-${pEnvironment}/util/cties/meter_xfmr_mapping_stg/*'
+                  - !Sub 'arn:aws:s3:::${pS3DataWorkBucket}-${pEnvironment}/util/cties/meter_premise_stg/*'
+                  # - !Sub 'arn:aws:s3:::${pS3DataWorkBucket}-${pEnvironment}/util/cties/meter_premise_csv/*'  ## to be removed
+
+                  - !Sub 'arn:aws:s3:::${pS3DataConsumeBucket}-${pEnvironment}'
+                  - !Sub 'arn:aws:s3:::${pS3DataConsumeBucket}-${pEnvironment}/cties/'
+                  - !Sub 'arn:aws:s3:::${pS3DataConsumeBucket}-${pEnvironment}/cties/*'
+                  - !Sub 'arn:aws:s3:::${pS3DataConsumeBucket}-${pEnvironment}/cties/meter_xfmr_mapping/*' 
+
+                  # - !Sub 'arn:aws:s3:::${pS3DataConsumeBucket}-${pEnvironment}/cties/meter_xfmr_voltg_summ_cons/*'  ## to be removed
+                  - !Sub 'arn:aws:s3:::${pS3DataConsumeBucket}-${pEnvironment}/cties/meter_xfmr_voltg_summ/*'
+                  - !Sub 'arn:aws:s3:::${pS3DataConsumeBucket}-${pEnvironment}/cties/meter_xfmr_voltg_rf/*'      
+                  - !Sub 'arn:aws:s3:::${pS3DataConsumeBucket}-${pEnvironment}/cties/meter_xfmr_voltg_summ_retie/*'
+                       
+                  
+                
+              - Action:
+                  - "s3:List*"
+                  - "s3:Get*"
+                Effect: Allow
+                Resource: 
+                  - !Sub 'arn:aws:s3:::${pCodeBucket}-${pEnvironment}'
+                  - !Sub 'arn:aws:s3:::${pCodeBucket}-${pEnvironment}/hdpapp/cties/glueetl/*'
+
+                  - !Sub 'arn:aws:s3:::${pS3DataNonVeeConsumeBucket}-${pEnvironment}'
+                  - !Sub 'arn:aws:s3:::${pS3DataNonVeeConsumeBucket}-${pEnvironment}/util/intervals/reading_ivl_nonvee*/*'   
+
+                  - !Sub "arn:aws:s3:::${pS3DataTransformBucket}-${pEnvironment}"
+                  - !Sub "arn:aws:s3:::${pS3DataTransformBucket}-${pEnvironment}/util/ods/meter_premise/*"      
+
+                 - !Sub 'arn:aws:s3:::${pS3DataNonVeeConsumeBucket}-prod'        ## to be removed
+                 - !Sub 'arn:aws:s3:::${pS3DataNonVeeConsumeBucket}-prod/util/intervals/reading_ivl_nonvee*/*'   ## to be removed
+
+                 - !Sub "arn:aws:s3:::${pS3DataTransformBucket}-prod"      ## to be removed
+                 - !Sub "arn:aws:s3:::${pS3DataTransformBucket}-prod/util/ods/meter_premise/*"     ## to be removed
+
+
+        - PolicyName: aep_dl_app_glue_policy_cties_kms
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                  - "kms:Decrypt"
+                  - "kms:Encrypt"
+                  - "kms:Get*"
+                  - "kms:List*"
+                  - "kms:DescribeCustomKeyStores"
+                  - "kms:DescribeKey*"
+                  - "kms:GenerateDataKey"                  
+                Effect: Allow
+                Resource:
+                    - !ImportValue s3KMSKeyArn
+                    - !ImportValue smKMSKeyArn
+                   - arn:aws:kms:us-east-1:292805373755:key/a3023ed0-948d-4af9-bc91-f6fa16cda59f  ## to be removed prod
+
+        - PolicyName: aep_dl_app_glue_policy_cties_ec2
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                  - "ec2:GetPasswordData"
+                  - "ec2:CreateNetworkInterface"
+                  - "ec2:GetLaunchTemplateData"
+                  - "ec2:CreateTags"
+                  - "ec2:GetInstanceUefiData"
+                  - "ec2:DescribeInstanceAttribute"
+                  - "ec2:ModifyNetworkInterfaceAttribute"
+                  - "ec2:AttachNetworkInterface"
+                  - "ec2:GetConsoleScreenshot"
+                  - "ec2:GetConsoleOutput"
+                  - "ec2:CreateTags"
+                  - "ec2:DescribeSubnets"
+                  - "ec2:DescribeVpcs"
+                  - "ec2:DescribeAvailabilityZones"
+                  - "ec2:DescribeNetworkAcls"
+                  - "ec2:DescribeRouteTables"
+                  - "ec2:DescribeSecurityGroups"
+                  - "ec2:DescribeVpcEndpoints"          
+                  - "ec2:CreateNetworkInterface"
+                  - "ec2:DeleteNetworkInterface"    
+        
+                Effect: Allow
+                Resource: 
+                  - !Sub "arn:aws:ec2:*:${AWS::AccountId}:instance/*"
+                  - !Sub "arn:aws:ec2:*:${AWS::AccountId}:network-interface/*"
+                  - !Sub "arn:aws:ec2:*:${AWS::AccountId}:elastic-ip/*"
+                  - !Sub "arn:aws:ec2:*:${AWS::AccountId}:security-group/*"
+                  - '*'
+
+        - PolicyName: aep_dl_app_glue_policy_cties_srctmgr
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                  - "secretsmanager:GetResourcePolicy"
+                  - "secretsmanager:GetSecretValue"
+                  - "secretsmanager:DescribeSecret"                  
+                  - "secretsmanager:ListSecretVersionIds"
+                  - "secretsmanager:GetRandomPassword"
+                  - "secretsmanager:ListSecrets"
+                  - "secretsmanager:UpdateSecretVersionStage"
+                Effect: Allow
+                Resource:
+                  - !Sub "arn:aws:secretsmanager:us-east-1:${AWS::AccountId}:secret:/aep/datalake/${pEnvironment}/mv90/db/utl_login-??????"
+
+        - PolicyName: aep_dl_app_glue_policy_cties_ssm_param
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                  - ssm:List*
+                  - ssm:Update*
+                  - ssm:Get*
+                  - ssm:Describe*
+                  - ssm:Put*
+                  - ssm:ModifyDocumentPermission
+                Effect: Allow
+                Resource:
+                  - !Sub "arn:aws:ssm:*:${AWS::AccountId}:parameter/aep/analytics/hdp/${pEnvironment}/cties/*"
+                  - !Sub "arn:aws:ssm:*:${AWS::AccountId}:parameter/aep/analytics/hdp/${pEnvironment}/cties/parms/*"
+
+        - PolicyName: aep_dl_app_glue_policy_cties_sns
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                - "sns:Publish"
+                - "sns:List*"
+                - "sns:Get*"
+                Effect: Allow
+                Resource: 
+                  - !Sub "arn:aws:sns:us-east-1:${AWS::AccountId}:${pSNSTopicName}-success-${pEnvironment}"
+                  - !Sub "arn:aws:sns:us-east-1:${AWS::AccountId}:${pSNSTopicName}-failure-${pEnvironment}"
+
+        - PolicyName: aep_dl_app_glue_policy_cties_stepfunc
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                  - "states:StartExecution"
+                  - "states:StopExecution"
+                  - "states:SendTaskSuccess"
+                  - "states:SendTaskFailure"
+                  - "states:StartSyncExecution"
+                  - "states:TagResource"
+                  - "states:DescribeActivity"
+                  - "states:DescribeExecution"
+                  - "states:DescribeStateMachine"
+                  - "states:DescribeStateMachineForExecution"
+                  - "states:GetActivityTask"
+                  - "states:GetExecutionHistory"
+                  - "states:ListActivities"
+                  - "states:ListExecutions"
+                  - "states:ListMapRuns"
+                  - "states:ListStateMachines"
+                  - "states:ListTagsForResource"
+                  - "states:SendTaskHeartbeat"
+                  - "states:UntagResource"
+                  - "states:UpdateMapRun"
+                  - "states:UpdateStateMachine"
+                  - "states:Create*"
+                  - "states:Describe*"
+
+                Effect: Allow
+                Resource: '*'
+
+        - PolicyName: aep_dl_app_glue_policy_cties_stepfunc_passrole
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                  - "iam:PassRole"
+                Effect: Allow
+                Resource: 
+                  # - !Sub "arn:aws:iam::${AWS::AccountId}:role/cties-stepfunction-execution-role-${pEnvironment}"
+                  - !ImportValue oCtiesStepFunctionIAMRoleArn
+                  # - '*' 
+
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole
+      PermissionsBoundary: !Sub "arn:aws:iam::${AWS::AccountId}:policy/AEPCloudBoundary"
+
+## Glue ETL Jobs
+## meter_xfmr mapping file from raw to _stg
+  rGlueETLJobRawToStg:
+    Type: AWS::Glue::Job
+    Properties:
+      Description: "CTies GIS/EO Meter - Transformer Mapping Data Load [raw to stg]"
+      Name: !Sub "${pGlueETLJobNameRawToStg}"
+      Tags: {'Owner':'analytics_generation@aep.com', 'Team':'Analytics Hadoop', 'ProductName':'Glueetl', 'BusinessUnit':'ITCORP', 'BackUp':'False', 'UseCase':'CTIES','Step':'GIS Mapping Raw To Stg'}
+
+      GlueVersion: '4.0'
+      WorkerType: 'G.2X'
+      NumberOfWorkers: 5
+      ExecutionClass: "FLEX"
+      ExecutionProperty:
+        MaxConcurrentRuns: 7
+      MaxRetries: 0
+      Role: !GetAtt rGlueExecutionIAMRole.Arn
+      Timeout: 180
+      DefaultArguments:
+        --class: 'GlueApp'
+        --enable-auto-scaling: 'true' 
+        --write-shuffle-files-to-s3: 'true' 
+        --write-shuffle-spills-to-s3: 'true' 
+        --enable-job-insights: 'true' 
+        --enable-continuous-cloudwatch-log: 'true'
+        --enable-spark-ui: 'true'
+        --enable-glue-datacatalog: ''
+        --additional-python-modules: 'pyarrow==10.0.0,awswrangler,geopy' 
+        --TempDir : !Sub "s3://${pS3DataLogBucket}-${pEnvironment}/glueetl/temporary/"  
+        --spark-event-logs-path: !Sub "s3://${pS3DataLogBucket}-${pEnvironment}/glueetl/sparkHistoryLogs/"
+        --AWS_ENV : !Sub "${pEnvironment}"
+        --S3_DATA_RAW : !Sub "s3://${pS3DataRawBucket}"
+        --S3_DATA_WORK : !Sub "s3://${pS3DataWorkBucket}"
+        --S3_DATA_CONSUME : !Sub "s3://${pS3DataConsumeBucket}"
+        --VAR_EXTRACT_DT_FROM : '2023-02-28'
+        --VAR_EXTRACT_DT_TO : '2023-02-28'
+        --VAR_OPCO : 'pso'
+        --VAR_SNS_TOPIC: !Sub "arn:aws:sns:us-east-1:${AWS::AccountId}:${pSNSTopicName}-success-${pEnvironment},arn:aws:sns:us-east-1:${AWS::AccountId}:${pSNSTopicName}-failure-${pEnvironment}"
+
+      Command:
+        Name: 'glueetl'
+        PythonVersion: '3'
+        ScriptLocation: !Sub "s3://${pCodeBucket}-${pEnvironment}/hdpapp/cties/glueetl/cties-meter-xfmr-map-raw-stg.py"
+
+  ## meter_premise ansersds.meter_premise_vw to _stg
+  rGlueETLJobMeterPremise:
+    Type: AWS::Glue::Job
+    Properties:
+      Description: "cties-meter-premise info from ansersds to stg"
+      Name: !Sub "${pGlueETLJobNameMeterPremise}"
+      Tags: {'Owner':'analytics_generation@aep.com', 'Team':'Analytics Hadoop', 'ProductName':'Glueetl', 'BusinessUnit':'ITCORP', 'BackUp':'False', 'UseCase':'CTIES','Step':'Meter_Premise_VW To Stg'}      
+      GlueVersion: '4.0'
+      WorkerType: 'G.2X'
+      NumberOfWorkers: 7
+      ExecutionClass: "FLEX"
+      ExecutionProperty:
+        MaxConcurrentRuns: 7
+      Connections:
+        Connections:
+         - !Sub "cties_meter_premise_jdbc_connection_${pEnvironment}" 
+      MaxRetries: 0
+      Role: !GetAtt rGlueExecutionIAMRole.Arn
+      Timeout: 180
+      DefaultArguments:
+        --class: 'GlueApp'
+        --enable-auto-scaling: 'true' 
+        --write-shuffle-files-to-s3: 'true' 
+        --write-shuffle-spills-to-s3: 'true' 
+        --enable-job-insights: 'true' 
+        --enable-continuous-cloudwatch-log: 'true'
+        --enable-spark-ui: 'true'
+        --enable-glue-datacatalog: ''
+        --additional-python-modules: 'pyarrow==10.0.0,awswrangler,geopy' 
+        --TempDir : !Sub "s3://${pS3DataLogBucket}-${pEnvironment}/glueetl/temporary/"  
+        --spark-event-logs-path: !Sub "s3://${pS3DataLogBucket}-${pEnvironment}/glueetl/sparkHistoryLogs/"
+        --AWS_ENV: !Sub "${pEnvironment}"
+        --S3_DATA_WORK : !Sub "s3://${pS3DataWorkBucket}"
+        --S3_DATA_CONSUME : !Sub "s3://${pS3DataConsumeBucket}"
+        --VAR_OPCO : 'pso'
+        --VAR_SECRET_NAME : !Sub "/aep/datalake/${pEnvironment}/mv90/db/utl_login" 
+        --VAR_SNS_TOPIC: !Sub "arn:aws:sns:us-east-1:${AWS::AccountId}:${pSNSTopicName}-success-${pEnvironment},arn:aws:sns:us-east-1:${AWS::AccountId}:${pSNSTopicName}-failure-${pEnvironment}"
+
+      Command:
+        Name: 'glueetl'
+        PythonVersion: '3'
+        ScriptLocation: !Sub "s3://${pCodeBucket}-${pEnvironment}/hdpapp/cties/glueetl/cties-meter-premise-src-stg.py"
+ 
+  ## meter_xfmr mapping file from _stg to _consume
+  rGlueETLJobStgToConsume:
+    Type: AWS::Glue::Job
+    Properties:
+      Description: "CTies GIS/EO Meter - Transformer Mapping Data Load [stg to consume]"
+      Name: !Sub "${pGlueETLJobNameStgToConsume}"
+      Tags: {'Owner':'analytics_generation@aep.com', 'Team':'Analytics Hadoop', 'ProductName':'Glueetl', 'BusinessUnit':'ITCORP', 'BackUp':'False', 'UseCase':'CTIES','Step':'GIS and MeterPremVW StgToConsume'} 
+      
+      GlueVersion: '4.0'
+      WorkerType: 'G.2X'
+      NumberOfWorkers: 11
+      ExecutionClass: "FLEX"
+      ExecutionProperty:
+        MaxConcurrentRuns: 7
+      MaxRetries: 0
+      Role: !GetAtt rGlueExecutionIAMRole.Arn
+      Timeout: 180
+      DefaultArguments: 
+        --class: 'GlueApp'
+        --enable-auto-scaling: 'true' 
+        --write-shuffle-files-to-s3: 'true' 
+        --write-shuffle-spills-to-s3: 'true' 
+        --enable-job-insights: 'true' 
+        --enable-continuous-cloudwatch-log: 'true'
+        --enable-spark-ui: 'true'
+        --enable-glue-datacatalog: ''
+        --additional-python-modules: 'pyarrow==10.0.0,awswrangler,geopy' 
+        --TempDir : !Sub "s3://${pS3DataLogBucket}-${pEnvironment}/glueetl/temporary/"  
+        --spark-event-logs-path: !Sub "s3://${pS3DataLogBucket}-${pEnvironment}/glueetl/sparkHistoryLogs/"
+        --AWS_ENV: !Sub "${pEnvironment}"
+        --S3_DATA_WORK : !Sub "s3://${pS3DataWorkBucket}"
+        --S3_DATA_CONSUME : !Sub "s3://${pS3DataConsumeBucket}"
+        --S3_DATA_TRANSFORM : !Sub "s3://${pS3DataTransformBucket}"
+        --VAR_OPCO : 'pso'
+        --VAR_SNS_TOPIC: !Sub "arn:aws:sns:us-east-1:${AWS::AccountId}:${pSNSTopicName}-success-${pEnvironment},arn:aws:sns:us-east-1:${AWS::AccountId}:${pSNSTopicName}-failure-${pEnvironment}"
+
+      Command:
+        Name: 'glueetl'
+        PythonVersion: '3'
+        ScriptLocation: !Sub "s3://${pCodeBucket}-${pEnvironment}/hdpapp/cties/glueetl/cties-meter-xfmr-map-stg-consume.py"
+
+  # ## voltage summary in _consume
+  rGlueETLJobVoltgSumm:
+    Type: AWS::Glue::Job
+    Properties:
+      Description: "Customer Ties Meter Transformer Voltage Summary GlueETL"
+      Name: !Sub "${pGlueETLJobNameVoltgSumm}"
+      Tags: {'Owner':'analytics_generation@aep.com', 'Team':'Analytics Hadoop', 'ProductName':'Glueetl', 'BusinessUnit':'ITCORP', 'BackUp':'False', 'UseCase':'CTIES','Step':'VoltgSumm In Consume'}
+      
+      GlueVersion: '4.0'
+      WorkerType: 'G.2X'
+      NumberOfWorkers: 15
+      ExecutionClass: "FLEX"
+      ExecutionProperty:
+        MaxConcurrentRuns: 7
+      MaxRetries: 0
+      Role: !GetAtt rGlueExecutionIAMRole.Arn
+      Timeout: 180
+      
+      DefaultArguments: 
+        --class: 'GlueApp'
+        --enable-auto-scaling: 'true' 
+        --write-shuffle-files-to-s3: 'true' 
+        --write-shuffle-spills-to-s3: 'true' 
+        --enable-job-insights: 'true' 
+        --enable-continuous-cloudwatch-log: 'true'
+        --enable-spark-ui: 'true'
+        --enable-glue-datacatalog: ''
+        --additional-python-modules: 'pyarrow==10.0.0,awswrangler,geopy' 
+        --TempDir : !Sub "s3://${pS3DataLogBucket}-${pEnvironment}/glueetl/temporary/"  
+        --spark-event-logs-path: !Sub "s3://${pS3DataLogBucket}-${pEnvironment}/glueetl/sparkHistoryLogs/"
+        --AWS_ENV: !Sub "${pEnvironment}"
+        --S3_NONVEE_CONSUME : !Sub "s3://${pS3DataNonVeeConsumeBucket}" 
+        --S3_CTIES_CONSUME : !Sub "s3://${pS3DataConsumeBucket}"
+        # --SSM_RUN_TYPE_NAME : !Sub "/aep/analytics/hdp/${pEnvironment}/cties/parms/voltg_summ_run_type"
+        --SSM_RUN_INTERVAL_NAME : !Sub "/aep/analytics/hdp/${pEnvironment}/cties/parms/voltg_summ_run_interval"
+        --SSM_LAST_RUN_AEP_USAGE_DT_TO_NAME : !Sub "/aep/analytics/hdp/${pEnvironment}/cties/parms/voltg_summ_last_run_aep_usage_dt_to"
+        --VAR_OPCO: 'pso' 
+        --VAR_SNS_TOPIC: !Sub "arn:aws:sns:us-east-1:${AWS::AccountId}:${pSNSTopicName}-success-${pEnvironment},arn:aws:sns:us-east-1:${AWS::AccountId}:${pSNSTopicName}-failure-${pEnvironment}"
+        # --VAR_AEP_USAGE_DT_FROM : '2023-01-01'
+        # --VAR_AEP_USAGE_DT_TO : '2023-01-15'
+
+      Command:
+        Name: 'glueetl'
+        PythonVersion: '3'
+        ScriptLocation: !Sub "s3://${pCodeBucket}-${pEnvironment}/hdpapp/cties/glueetl/cties-meter-xfmr-voltg-summ.py"
+
+# ## random forest in _consume
+  rGlueETLJobRandomForest:
+    Type: AWS::Glue::Job
+    Properties:
+      Description: "Customer Ties Meter Transformer Random Forest GlueETL"
+      Name: !Sub "${pGlueETLJobNameRandomForest}"
+      Tags: {'Owner':'analytics_generation@aep.com', 'Team':'Analytics Hadoop', 'ProductName':'Glueetl', 'BusinessUnit':'ITCORP', 'BackUp':'False', 'UseCase':'CTIES','Step':'RandomForest In Consume'}
+
+      GlueVersion: '4.0'
+      WorkerType: 'G.2X'
+      NumberOfWorkers: 15
+      ExecutionClass: "FLEX"
+      ExecutionProperty:
+        MaxConcurrentRuns: 7
+      MaxRetries: 0
+      Role: !GetAtt rGlueExecutionIAMRole.Arn
+      Timeout: 180
+      
+      DefaultArguments: 
+        --class: 'GlueApp'
+        --enable-auto-scaling: 'true' 
+        --write-shuffle-files-to-s3: 'true' 
+        --write-shuffle-spills-to-s3: 'true' 
+        --enable-job-insights: 'true' 
+        --enable-continuous-cloudwatch-log: 'true'
+        --enable-spark-ui: 'true'
+        --enable-glue-datacatalog: ''
+        --additional-python-modules: 'pyarrow==10.0.0,awswrangler,geopy' 
+        --TempDir : !Sub "s3://${pS3DataLogBucket}-${pEnvironment}/glueetl/temporary/"  
+        --spark-event-logs-path: !Sub "s3://${pS3DataLogBucket}-${pEnvironment}/glueetl/sparkHistoryLogs/"
+        --AWS_ENV: !Sub "${pEnvironment}"
+        --VAR_OPCO: 'pso' 
+        --S3_CTIES_CONSUME : !Sub "s3://${pS3DataConsumeBucket}"
+        --VAR_JOBLIB_FILE_PATH : !Sub "${pRandomForestJoblibFilePath}"
+        --SSM_RUN_INTERVAL_NAME : !Sub "/aep/analytics/hdp/${pEnvironment}/cties/parms/voltg_summ_run_interval"
+        --SSM_LAST_RUN_AEP_USAGE_DT_TO_NAME : !Sub "/aep/analytics/hdp/${pEnvironment}/cties/parms/random_forest_last_run_aep_usage_dt_to"
+        --VAR_SNS_TOPIC: !Sub "arn:aws:sns:us-east-1:${AWS::AccountId}:${pSNSTopicName}-success-${pEnvironment},arn:aws:sns:us-east-1:${AWS::AccountId}:${pSNSTopicName}-failure-${pEnvironment}"
+
+      Command:
+        Name: 'glueetl'
+        PythonVersion: '3'
+        ScriptLocation: !Sub "s3://${pCodeBucket}-${pEnvironment}/hdpapp/cties/glueetl/cties-random-forest.py"
+
+# ## retie in _consume
+  rGlueETLJobRetie:
+    Type: AWS::Glue::Job
+    Properties:
+      Description: "Customer Ties Meter Transformer Retie GlueETL"
+      Name: !Sub "${pGlueETLJobNameRetie}"
+      Tags: {'Owner':'analytics_generation@aep.com', 'Team':'Analytics Hadoop', 'ProductName':'Glueetl', 'BusinessUnit':'ITCORP', 'BackUp':'False', 'UseCase':'CTIES','Step':'Retie In Consume'}
+      GlueVersion: '4.0'
+      WorkerType: 'G.2X'
+      NumberOfWorkers: 15
+      ExecutionClass: "FLEX"
+      ExecutionProperty:
+        MaxConcurrentRuns: 7
+      MaxRetries: 0
+      Role: !GetAtt rGlueExecutionIAMRole.Arn
+      Timeout: 180
+      
+      DefaultArguments: 
+        --class: 'GlueApp'
+        --enable-auto-scaling: 'true' 
+        --write-shuffle-files-to-s3: 'true' 
+        --write-shuffle-spills-to-s3: 'true' 
+        --enable-job-insights: 'true' 
+        --enable-continuous-cloudwatch-log: 'true'
+        --enable-spark-ui: 'true'
+        --enable-glue-datacatalog: ''
+        --TempDir : !Sub "s3://${pS3DataLogBucket}-${pEnvironment}/glueetl/temporary/"  
+        --spark-event-logs-path: !Sub "s3://${pS3DataLogBucket}-${pEnvironment}/glueetl/sparkHistoryLogs/"
+        --AWS_ENV: !Sub "${pEnvironment}"
+        --VAR_OPCO: 'pso' 
+        --S3_CTIES_CONSUME : !Sub "s3://${pS3DataConsumeBucket}"
+        --SSM_RUN_INTERVAL_NAME : !Sub "/aep/analytics/hdp/${pEnvironment}/cties/parms/voltg_summ_run_interval"
+        --SSM_LAST_RUN_AEP_USAGE_DT_TO_NAME : !Sub "/aep/analytics/hdp/${pEnvironment}/cties/parms/retie_last_run_aep_usage_dt_to"
+        --VAR_SNS_TOPIC: !Sub "arn:aws:sns:us-east-1:${AWS::AccountId}:${pSNSTopicName}-success-${pEnvironment},arn:aws:sns:us-east-1:${AWS::AccountId}:${pSNSTopicName}-failure-${pEnvironment}"
+
+      Command:
+        Name: 'glueetl'
+        PythonVersion: '3'
+        ScriptLocation: !Sub "s3://${pCodeBucket}-${pEnvironment}/hdpapp/cties/glueetl/cties-retie.py"
+
+## Define Resource Definitions to be built
+Outputs:
+
+  oLandingToRawLambdaArn:
+    Description: ARN for LandingToRaw Lambda
+    Value: !Ref rLandingToRawLambdaFunction
+    # Value: !GetAtt rLandingToRawLambdaFunction.Arn
+  
+  oFreqIdentifierLambdaArn:
+    Description: ARN for FreqIdentifier Lambda
+    Value: !Ref rFreqIdentifierLambdaFunction
+
+  oGlueETLJobRawToStgArn:
+    Description: Glue Job Name (RawToStg)
+    Value: !Ref rGlueETLJobRawToStg
+
+  oGlueETLJobMeterPremiseArn:
+    Description: Glue Job Name (MeterPremise)
+    Value: !Ref rGlueETLJobMeterPremise  
+
+  oGlueETLJobStgToConsumeArn:
+    Description: Glue Job Name (StgToConsume)
+    Value: !Ref rGlueETLJobStgToConsume
+
+  oGlueETLJobVoltgSummArn:
+    Description: Glue Job Name (VoltgSumm)
+    Value: !Ref rGlueETLJobVoltgSumm
+
+  oGlueETLJobRandomForestArn:
+    Description: Glue Job Name (RandomForest)
+    Value: !Ref rGlueETLJobRandomForest
+
+  oGlueETLJobRetieArn:
+    Description: Glue Job Name (Retie)
+    Value: !Ref rGlueETLJobRetie
+
+
+## Complete

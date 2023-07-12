@@ -1,0 +1,1 @@
+aws s3api put-bucket-notification-configuration --bucket aep-dl-landing-qa --no-skip-destination-validation --notification-configuration file://s3_notification_qa.json

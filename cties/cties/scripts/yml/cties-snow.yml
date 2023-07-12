@@ -1,0 +1,155 @@
+##/**------------------------------------------------------------------------------------------**/
+##/**    AMERICAN ELECTRIC POWER - CTIES GIS/EO Meter-Transformer Mapping CFN script           **/
+##/**------------------------------------------------------------------------------------------**/
+##/**                               Confidentiality Information:                               **/
+##/**                               Copyright 2022, 2023 by                                    **/
+##/**                               American Electric Power                                    **/
+##/**                                                                                          **/
+##/** This module is confidential and proprietary information of American Electric             **/
+##/** Power, it is not to be copied or reproduced in any form, by any means, in                **/
+##/** whole or in part, nor is it to be used for any purpose other than that for               **/
+##/** which it is expressly provide without written permission of AEP.                         **/
+##/**------------------------------------------------------------------------------------------**/
+##/** AEP Custom Changes                                                                       **/
+##/**  Version #   Name                     Date            Description                        **/
+##/**   V0.1       Diganta                  11/14/2022      First Attempt in CloudFormation    **/
+##/**                                                                                          **/
+##/**------------------------------------------------------------------------------------------**/
+
+AWSTemplateFormatVersion: 2010-09-09
+Description: CTIES GIS/EO Meter-Transformer Mapping and Voltage Summary GlueETL CFN Script
+
+
+## Note: Command to create Stack via CLI
+## aws cloudformation deploy \
+## --template cties-snow.yml \
+## --stack-name cties-snow \
+## --tags BusinessUnit=ITCORP \
+##        Owner=analytics_hadoop@aep.com \
+##        map-migrated=d-server-01lbno209ea5yq \
+##        map-migrated-app=Hadoop_Prod \
+## --capabilities "CAPABILITY_NAMED_IAM" \
+## --no-fail-on-empty-changeset \
+## --parameter-overrides pEnvironment=dev , pSNOWControlBusStack=snow-dev
+
+
+
+## Define Parameters
+
+Parameters:
+ 
+  ## Env
+  pEnvironment:
+    Description: AEP Lifecycle Environment
+    Type: String
+    Default: dev
+    AllowedValues: [ dev, qa, prod ]
+
+## SNOW Lambda Stack Name
+  pSNOWControlBusStack:
+    Type: String
+    Default: snow-dev
+
+  # pAwsRegion:
+  #   Description: Bucket where S3 Raw Dataset resides 
+  #   Type: String
+  #   Default: 'us-east-1'
+
+## SNS Topic
+  pSNSTopicName:
+    Type: String
+    AllowedPattern: "[a-zA-Z0-9]+[a-zA-Z0-9-]+[a-zA-Z0-9]+"
+    Default: aep-dl-SNS
+
+## Define Resource Definitions to be built
+
+Resources:
+
+## Event Bridge - Event Bus Resources
+
+
+## SSM Parameter setup for ServiceNOW Integration - Used by Application Lambda
+  rCtiesSNOWParm:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Description: !Sub "Parameter setup for ServiceNOW Integration - Used by Application Lambda"
+      Name: !Sub "/aep/analytics/hdp/${pEnvironment}/cties/parms/servicenow"
+      DataType: "text"
+      Type: "String"
+      Value: '{ "snow_region_name": "us-east-1", "snow_account_id": "781692418050", "snow_lambda_name": "servicenow-alert-sbox", "snow_application_ci": "cties", "snow_application_name": "CTies" }'
+      Tier: "Standard"
+      Tags: {'Owner':'analytics_hadoop@aep.com', 'Team':'Analytics Hadoop', 'ProductName':'Glueetl', 'BusinessUnit':'ITCORP', 'BackUp':'False', 'UseCase':'CTIES','Step':'CTies - ServiceNow Lambda'}
+
+## !Sub "arn:aws:events:${AWS::Region}:${AWS::AccountId}:event-bus/aep-dl-snow-control-bus"
+## Meter Events Event Bus Rules
+  rCtiesSNOWControlBusRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: aep-dl-cties-glue-status
+      EventBusName: !ImportValue 
+        "Fn::Sub": "${pSNOWControlBusStack}-SNOWControlBus"
+      Description: CTIES Rule for Glue Job Failures to SNOW  
+      State: "ENABLED"
+      EventPattern:
+        source: ["aws.glue"]
+        detail-type: ["Glue Job State Change"]
+        detail:
+          jobName:
+            - "cties-meter-xfmr-map-raw-stg"
+            - "cties-meter-premise-src-stg"
+            - "cties-meter-xfmr-map-stg-consume"
+            - "cties-meter-xfmr-voltg-summ"
+            - "cties-random-forest"
+            - "cties-retie"
+          state: ["FAILED", "TIMEOUT", "STOPPED"]
+      Targets: 
+        - Id: !Sub "Target-aep-dl-cties-glue-status-${pEnvironment}"
+          Arn: !ImportValue 
+            "Fn::Sub": "${pSNOWControlBusStack}-LambdaSNOWControlBusNotify"
+          InputTransformer: 
+            InputPathsMap:
+              "job_type": "$.source"
+              "aep_account": "$.account"
+              "aep_region": "$.region"
+              "job_ts": "$.time"
+              "jobname": "$.detail.jobName"
+              "jobrun_id": "$.detail.jobRunId"
+              "jobrun_message": "$.detail.message"
+              "jobrun_state": "$.detail.state"
+            InputTemplate: !Sub
+              - |
+                {
+                  "aep_job_type": "<job_type>",
+                  "aep_aws_account": "<aep_account>",
+                  "aep_aws_region": "<aep_region>",
+                  "aep_job_ts": "<job_ts>",
+                  "aep_jobname": "<jobname>",
+                  "aep_jobrun_id": "<jobrun_id>",
+                  "aep_jobrun_message": "<jobrun_message>",
+                  "aep_jobrun_state": "<jobrun_state>",
+                  "aep_job_rulearn": "<aws.events.rule-arn>", 
+                  "aep_job_rulename": "<aws.events.rule-name>",
+                  "aep_snow_ssm_parm": "${CtiesSNOWParm}",
+                  "aep_sns_topic": "arn:aws:sns:${AWS::Region}:${AWS::AccountId}:aep-dl-SNS-failure-${pEnvironment}",
+                  "originalEvent": <aws.events.event.json>
+                }
+              - CtiesSNOWParm: !Ref rCtiesSNOWParm
+
+## Permissions for Event Bus to Invoke Application Lambda
+  rEventBusTargetLambdaInvoke:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !ImportValue
+        "Fn::Sub": "${pSNOWControlBusStack}-LambdaSNOWControlBusNotify"
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt rCtiesSNOWControlBusRule.Arn
+
+## Define Resource Definitions to be built
+Outputs:
+  oEventBusDefaultArn:
+    Description: default Rule for cties
+    Value: !Ref rCtiesSNOWControlBusRule
+  
+
+## Complete

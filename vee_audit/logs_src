@@ -1,0 +1,1204 @@
+ACCOUNT_ID=889415020100
+2022-12-31 11:43:53 ========== VEE AUDIT SRC SCRIPT BEGIN ==========
+Start Source Aggregation Sat Dec 31 11:43:53 UTC 2022
+AUDIT_RUN_DT=2022-12-19
+START_DATE=2022-11-29
+HDP_LAST_RUN_DT=2021-07-20 19:04:08
+2022-12-31 11:43:53 Starting a Fresh Load..
+executing clean_external_location_dir..
+s3 location to place the exported data from athena
+s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src
+start clean_export_dir
+2022-12-31 11:43:53 aws s3 rm --recursive s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=im/aggr_type=DATA_QUALITY/20221231_113600_00086_u46nu_0e415523-67d1-420e-b9cf-f53bd73fd1c8
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=im/aggr_type=DATA_QUALITY/20221231_113600_00086_u46nu_f38304cb-cae5-4676-8c53-7b9ebc4ca266
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=im/aggr_type=DATA_QUALITY/20221231_113600_00086_u46nu_82a2206f-f422-4278-b31e-c4c8825ee3a6
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=im/aggr_type=ZERO_USAGE/20221231_113614_00080_fpvr2_eb71f9df-e6d6-4e60-add6-8ad18398dcde
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=im/aggr_type=UOM/20221231_113540_00087_m7mui_2489da18-6131-4496-bd7d-f68bd17b966b
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=im/aggr_type=INTERVAL_COUNT/20221231_113859_00022_2g3cd_1f57f709-e372-4d42-bf34-25c06e838f2b
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=im/aggr_type=ZERO_USAGE/20221231_113613_00100_nymss_762d9082-9807-4556-8c1d-f8b96f7591da
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=im/aggr_type=UOM/20221231_113540_00087_m7mui_4aa085d9-5b15-4ca4-992a-214d893362b9
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=im/aggr_type=UOM/20221231_113540_00087_m7mui_86da9eae-9660-417a-b716-c37e17d5e039
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=oh/aggr_type=DATA_QUALITY/20221231_113600_00086_u46nu_24cd6b12-b918-457e-945f-cd581739c517
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=im/aggr_type=USAGE_DATE/20221231_113521_00035_3ag7i_f44d5287-72a3-4822-995e-5b1bea8ad7e5
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=oh/aggr_type=DATA_QUALITY/20221231_113600_00086_u46nu_ff3a07d8-7cba-4d25-9ac0-6a2d52045c7e
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=im/aggr_type=USAGE_DATE/20221231_113521_00035_3ag7i_7946af77-8f4a-409c-b4c1-8c67abd1a3c5
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=im/aggr_type=ZERO_USAGE/20221231_113613_00100_nymss_2670fa89-3d62-41c3-8c75-5ff481727ee7
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=oh/aggr_type=DATA_QUALITY/20221231_113600_00086_u46nu_8c415b5f-2b7b-415a-b8d8-5331cdcd0cf3
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=im/aggr_type=ZERO_USAGE/20221231_113614_00080_fpvr2_7fdf0c10-38c1-4ad3-855f-4c5c6e6c1e36
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=im/aggr_type=ZERO_USAGE/20221231_113613_00100_nymss_7719bc98-9ef7-4aa3-99db-42e36f13cdc1
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=oh/aggr_type=UOM/20221231_113540_00087_m7mui_151c5829-563e-44b7-9fa1-287923a4f8ca
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=oh/aggr_type=INTERVAL_COUNT/20221231_113859_00022_2g3cd_c1b42cdf-f025-451b-a9ac-7345b0530f61
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=oh/aggr_type=DATA_QUALITY/20221231_113600_00086_u46nu_1ef65c5e-9749-4175-bf60-c4d8297e9a7e
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=oh/aggr_type=UOM/20221231_113540_00087_m7mui_33004039-4d55-4bb9-8f1e-c7ada4c8e79b
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=im/aggr_type=ZERO_USAGE/20221231_113614_00080_fpvr2_d829c7f2-475d-48ca-82d9-95d81f134139
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=oh/aggr_type=UOM/20221231_113540_00087_m7mui_aede974e-9137-4edf-9b08-9a97cc710f87
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=oh/aggr_type=ZERO_USAGE/20221231_113613_00100_nymss_a364d2e2-3fc6-4ec3-9957-31262ff84f40
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=oh/aggr_type=USAGE_DATE/20221231_113521_00035_3ag7i_4d501398-0d78-4042-9498-e22a76926197
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=oh/aggr_type=ZERO_USAGE/20221231_113613_00100_nymss_0d3761eb-70eb-43db-b0e9-008dee795e82
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=pso/aggr_type=DATA_QUALITY/20221231_113600_00086_u46nu_1453c889-c3a6-4271-b1f9-55bed62d0cab
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=oh/aggr_type=ZERO_USAGE/20221231_113614_00080_fpvr2_d6cc7dba-4ee7-4f75-992c-bcb0b094de13
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=oh/aggr_type=ZERO_USAGE/20221231_113614_00080_fpvr2_5b8d4b24-7aee-49eb-9921-2c9d0ff6f66c
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=oh/aggr_type=ZERO_USAGE/20221231_113614_00080_fpvr2_5e616810-b80a-4ce4-923c-9a0973cbe6da
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=pso/aggr_type=DATA_QUALITY/20221231_113600_00086_u46nu_96e5945f-cbd6-45d6-80d1-a132e4445fd5
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=pso/aggr_type=UOM/20221231_113540_00087_m7mui_409490d5-6d59-4422-b1c4-73af0e327526
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=pso/aggr_type=DATA_QUALITY/20221231_113600_00086_u46nu_ae92dff3-fc3d-4e67-a5c6-795e98f5b6ef
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=pso/aggr_type=DATA_QUALITY/20221231_113600_00086_u46nu_f9ed6a9a-0884-44eb-a4fa-9c7ce5e108db
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=oh/aggr_type=USAGE_DATE/20221231_113521_00035_3ag7i_2a00bd40-b5ea-4ac2-ab8e-46b3158b717b
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=pso/aggr_type=INTERVAL_COUNT/20221231_113859_00022_2g3cd_2d59c3ae-402d-4dd7-9629-a77874cfe374
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=pso/aggr_type=UOM/20221231_113540_00087_m7mui_c265a3fe-a25f-459e-9efc-dcc206b3467b
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=pso/aggr_type=USAGE_DATE/20221231_113521_00035_3ag7i_a458b31e-bf18-408c-aa3c-4b0c2a647186
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=pso/aggr_type=UOM/20221231_113540_00087_m7mui_5f0de4de-7b21-4f7e-9904-fa4d16e4ae62
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=pso/aggr_type=USAGE_DATE/20221231_113521_00035_3ag7i_ee209da4-2ef1-467d-81a4-5e2e626111df
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=pso/aggr_type=ZERO_USAGE/20221231_113613_00100_nymss_30328265-3d72-405f-b8b1-feb12b52c811
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=pso/aggr_type=ZERO_USAGE/20221231_113613_00100_nymss_3cb83f4e-6ee0-4725-89f0-aa85f1f9b2ee
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=oh/aggr_type=ZERO_USAGE/20221231_113613_00100_nymss_51c6e8fa-fec7-4355-9278-1acb20f84e84
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=pso/aggr_type=ZERO_USAGE/20221231_113614_00080_fpvr2_5a679599-3ced-47b8-b094-8e50a836798c
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=pso/aggr_type=ZERO_USAGE/20221231_113614_00080_fpvr2_778ea1f1-44fc-4934-9465-32e92220f0a8
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=pso/aggr_type=ZERO_USAGE/20221231_113614_00080_fpvr2_8e8b8a45-2bc3-4784-865e-c29c64c77c36
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=pso/aggr_type=ZERO_USAGE/20221231_113613_00100_nymss_1f4cdb4b-c84a-4c00-8d15-51be99d28c07
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=tx/aggr_type=DATA_QUALITY/20221231_113600_00086_u46nu_5a6a7355-6bf4-4946-a434-75fb1ecbb0dd
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=tx/aggr_type=DATA_QUALITY/20221231_113600_00086_u46nu_b46b1be1-5b0a-4192-8d5b-9a063d86ea79
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=tx/aggr_type=UOM/20221231_113540_00087_m7mui_1c5a9c9d-7939-4f08-b2ec-7b05d3600e9e
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=tx/aggr_type=UOM/20221231_113540_00087_m7mui_37e4af21-0eca-484a-8e39-8101e61998d6
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=tx/aggr_type=DATA_QUALITY/20221231_113600_00086_u46nu_b67b4232-e8c3-49d8-aec4-9f1463caf5b4
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=tx/aggr_type=INTERVAL_COUNT/20221231_113859_00022_2g3cd_57443e9f-90fb-49ef-8d36-3ea2a1459bee
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=tx/aggr_type=USAGE_DATE/20221231_113521_00035_3ag7i_9ecb7920-9057-41fc-8149-b2119c385723
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=tx/aggr_type=USAGE_DATE/20221231_113521_00035_3ag7i_a8135be5-b1b9-4594-a59a-9444a3bc45c0
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=tx/aggr_type=UOM/20221231_113540_00087_m7mui_de18f49a-2d78-44be-a3c4-19e04165578e
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=tx/aggr_type=ZERO_USAGE/20221231_113614_00080_fpvr2_d4e6181a-ae46-41bb-b4e4-9a4c54399bdc
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=tx/aggr_type=ZERO_USAGE/20221231_113613_00100_nymss_0af68110-17b0-4293-80c1-cb27f59bbe47
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=tx/aggr_type=ZERO_USAGE/20221231_113614_00080_fpvr2_7f090052-0e08-4d79-a2ce-b5d18bc6c855
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=tx/aggr_type=ZERO_USAGE/20221231_113613_00100_nymss_b474c248-4a9f-4bab-878f-633d9c420be9
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=tx/aggr_type=ZERO_USAGE/20221231_113613_00100_nymss_bd6af0cc-5e83-4504-b543-888d6ae10844
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src/run_dt=2022-12-19/aep_opco=tx/aggr_type=ZERO_USAGE/20221231_113614_00080_fpvr2_80b2c8c6-0355-496d-bd03-9b6ef85f97fd
+2022-12-31 11:43:54 Clean-Up external_location_dir s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src
+clean_external_location_dir succeeded..
+executing drop_create_athena_table..
+start create_athena_objects
+/home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp
+-rw-r--r-- 1 s362807 users 61 Dec 31 11:43 /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp
+2022-12-31 11:43:54 submit file /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp to Athena
+
+2022-12-31 11:43:54 ====================================================================
+
+DROP TABLE IF EXISTS stg_vee.xfrm_audit_reading_ivl_vee_src;
+
+2022-12-31 11:43:54 ====================================================================
+
+2022-12-31 11:43:54 aws athena start-query-execution --query-string file:///home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp --result-configuration OutputLocation=s3://aep-datalake-user-data-dev/athena_result_sets/lambda_partitions_update/ --work-group HdpDeveloper --output text
+2022-12-31 11:43:55 Athena Execution id=2f4c3660-3594-4f7b-8954-a18d43586677
+
+
+
+2022-12-31 11:43:55 line_cnt=1
+2022-12-31 11:43:56 Query 2f4c3660-3594-4f7b-8954-a18d43586677 status => RUNNING ,
+2022-12-31 11:43:56 still running, write id 2f4c3660-3594-4f7b-8954-a18d43586677 to run file => /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp.execution_id.txt.running
+2022-12-31 11:44:01 line_cnt=1
+2022-12-31 11:44:02 Query 2f4c3660-3594-4f7b-8954-a18d43586677 status => SUCCEEDED ,
+2022-12-31 11:44:07 line_cnt=0
+2022-12-31 11:44:07 ALL RECORDS PROCESSED
+2022-12-31 11:44:07 ====================================================================
+
+
+
+2022-12-31 11:44:07 sed -i "s/${env}/dev/g" /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp
+start create_athena_objects
+/home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp
+-rw-r--r-- 1 s362807 users 702 Dec 31 11:44 /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp
+2022-12-31 11:44:08 submit file /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp to Athena
+
+2022-12-31 11:44:08 ====================================================================
+
+CREATE EXTERNAL TABLE stg_vee.xfrm_audit_reading_ivl_vee_src(
+  aep_usage_dt string, 
+  aep_usage_type string, 
+  name_register string, 
+  aep_data_quality_cd string, 
+  aep_no_of_intvl string, 
+  intvl_cnt bigint, 
+  intvl_usg double, 
+  unq_meter_count bigint, 
+  hdp_insert_dttm string)
+PARTITIONED BY ( 
+  run_dt string, 
+  aep_opco string, 
+  aggr_type string)
+STORED AS PARQUET
+LOCATION
+  's3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_src'
+TBLPROPERTIES (
+  'bucketing_version'='2',
+  'parquet.bloom.filter.columns'='aggr_type',
+  'parquet.bloom.filter.fpp'='0.05',
+  'parquet.compression'='SNAPPY',
+  'parquet.create.index'='true' )
+  
+
+
+2022-12-31 11:44:08 ====================================================================
+
+2022-12-31 11:44:08 aws athena start-query-execution --query-string file:///home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp --result-configuration OutputLocation=s3://aep-datalake-user-data-dev/athena_result_sets/lambda_partitions_update/ --work-group HdpDeveloper --output text
+2022-12-31 11:44:09 Athena Execution id=4912f676-44b4-41c8-988d-bc7fa78d8e49
+
+
+
+2022-12-31 11:44:09 line_cnt=1
+2022-12-31 11:44:10 Query 4912f676-44b4-41c8-988d-bc7fa78d8e49 status => SUCCEEDED ,
+2022-12-31 11:44:15 line_cnt=0
+2022-12-31 11:44:15 ALL RECORDS PROCESSED
+2022-12-31 11:44:15 ====================================================================
+
+
+
+drop_create_athena_table succeeded..
+executing insert_usage_dt..
+start create_athena_objects
+/home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp
+-rw-r--r-- 1 s362807 users 1138 Dec 31 11:44 /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp
+2022-12-31 11:44:17 submit file /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp to Athena
+
+2022-12-31 11:44:17 ====================================================================
+
+-- USAGE_DATE
+insert INTO stg_vee.xfrm_audit_reading_ivl_vee_src
+(
+  aep_usage_dt, 
+  aep_usage_type, 
+  name_register, 
+  aep_data_quality_cd , 
+  aep_no_of_intvl , 
+  intvl_cnt , 
+  intvl_usg , 
+  unq_meter_count , 
+  hdp_insert_dttm ,
+  run_dt , 
+  aep_opco , 
+  aggr_type 
+)
+select 
+	aep_usage_dt , 
+	aep_usage_type , 
+	'' name_register ,   
+	'' aep_data_quality_cd ,
+	'' aep_no_of_intvl ,
+	cast( src_intvl_cnt as bigint) src_intvl_cnt , 
+	cast( src_intvl_usg as double) src_intvl_usg,
+	src_unq_meter_count , 
+	cast( current_timestamp as varchar) hdp_insert_dttm , 
+	run_dt , 
+	aep_opco ,
+	aggr_type
+from 
+(
+	select 
+		'2022-12-19' Run_dt,
+		'USAGE_DATE' aggr_type,
+		aep_opco,
+		usage_date aep_usage_dt,
+		aep_usage_type,
+		sum(cnt_msrmt_val) src_intvl_cnt,
+		sum(tot_msrmt_val) src_intvl_usg,	
+		COUNT(distinct adhoc_char_val) src_unq_meter_count
+	from 
+		stg_vee.stg_measurement_audit
+	where 
+		aep_usage_type = 'interval' 
+		and measr_comp_type_cd in('E-KWH-15-DEL','E-KWH-15-REC')
+	--	and usage_date > '2022-11-29'
+		and usage_date < '2022-12-19'
+	group by 
+		'2022-12-19',
+		aep_opco,
+		usage_date,
+		aep_usage_type
+
+) aggr_tbl;
+2022-12-31 11:44:17 ====================================================================
+
+2022-12-31 11:44:17 aws athena start-query-execution --query-string file:///home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp --result-configuration OutputLocation=s3://aep-datalake-user-data-dev/athena_result_sets/lambda_partitions_update/ --work-group HdpDeveloper --output text
+2022-12-31 11:44:20 Athena Execution id=8dc0aece-e2aa-4197-91ea-20ad6fcac855
+
+
+
+2022-12-31 11:44:20 line_cnt=1
+2022-12-31 11:44:21 Query 8dc0aece-e2aa-4197-91ea-20ad6fcac855 status => RUNNING ,
+2022-12-31 11:44:21 still running, write id 8dc0aece-e2aa-4197-91ea-20ad6fcac855 to run file => /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp.execution_id.txt.running
+2022-12-31 11:44:27 line_cnt=1
+2022-12-31 11:44:27 Query 8dc0aece-e2aa-4197-91ea-20ad6fcac855 status => RUNNING ,
+2022-12-31 11:44:27 still running, write id 8dc0aece-e2aa-4197-91ea-20ad6fcac855 to run file => /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp.execution_id.txt.running
+2022-12-31 11:44:33 line_cnt=1
+2022-12-31 11:44:33 Query 8dc0aece-e2aa-4197-91ea-20ad6fcac855 status => RUNNING ,
+2022-12-31 11:44:33 still running, write id 8dc0aece-e2aa-4197-91ea-20ad6fcac855 to run file => /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp.execution_id.txt.running
+2022-12-31 11:44:39 line_cnt=1
+2022-12-31 11:44:40 Query 8dc0aece-e2aa-4197-91ea-20ad6fcac855 status => RUNNING ,
+2022-12-31 11:44:40 still running, write id 8dc0aece-e2aa-4197-91ea-20ad6fcac855 to run file => /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp.execution_id.txt.running
+2022-12-31 11:44:45 line_cnt=1
+2022-12-31 11:44:46 Query 8dc0aece-e2aa-4197-91ea-20ad6fcac855 status => RUNNING ,
+2022-12-31 11:44:46 still running, write id 8dc0aece-e2aa-4197-91ea-20ad6fcac855 to run file => /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp.execution_id.txt.running
+2022-12-31 11:44:51 line_cnt=1
+2022-12-31 11:44:52 Query 8dc0aece-e2aa-4197-91ea-20ad6fcac855 status => SUCCEEDED ,
+2022-12-31 11:44:57 line_cnt=0
+2022-12-31 11:44:57 ALL RECORDS PROCESSED
+2022-12-31 11:44:57 ====================================================================
+
+
+
+insert_usage_dt succeeded..
+executing insert_uom..
+start create_athena_objects
+/home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp
+-rw-r--r-- 1 s362807 users 1199 Dec 31 11:44 /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp
+2022-12-31 11:44:57 submit file /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp to Athena
+
+2022-12-31 11:44:57 ====================================================================
+
+--UOM aggregation
+insert INTO stg_vee.xfrm_audit_reading_ivl_vee_src
+(
+  aep_usage_dt, 
+  aep_usage_type, 
+  name_register, 
+  aep_data_quality_cd , 
+  aep_no_of_intvl , 
+  intvl_cnt , 
+  intvl_usg , 
+  unq_meter_count , 
+  hdp_insert_dttm ,
+  run_dt , 
+  aep_opco , 
+  aggr_type 
+)
+select 
+  aep_usage_dt , 
+  aep_usage_type , 
+  name_register ,   
+  '' aep_data_quality_cd ,
+  '' aep_no_of_intvl ,
+  cast( src_intvl_cnt as bigint) src_intvl_cnt , 
+  cast( src_intvl_usg as double) src_intvl_usg,
+  src_unq_meter_count , 
+  cast( current_timestamp as varchar) hdp_insert_dttm , 
+  run_dt , 
+  aep_opco ,
+  aggr_type
+from 
+(
+	select 
+		usage_date aep_usage_dt,
+		aep_usage_type,
+		measr_comp_type_cd name_register,
+		'' aep_data_quality_cd ,
+		'' aep_no_of_intvl ,
+		sum(cnt_msrmt_val) src_intvl_cnt,
+		sum(tot_msrmt_val) src_intvl_usg,
+		COUNT(distinct adhoc_char_val) src_unq_meter_count,
+		current_timestamp hdp_insert_dttm , 	
+		'2022-12-19' Run_dt,
+		aep_opco,	
+		'UOM' aggr_type
+	from 
+		stg_vee.stg_measurement_audit
+	where 	
+		aep_usage_type = 'interval' 
+		and usage_date < '2022-12-19'
+	group by 
+		'2022-12-19',
+		aep_opco,
+		usage_date,
+		aep_usage_type,
+		measr_comp_type_cd 
+)aggr_tbl;
+2022-12-31 11:44:57 ====================================================================
+
+2022-12-31 11:44:57 aws athena start-query-execution --query-string file:///home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp --result-configuration OutputLocation=s3://aep-datalake-user-data-dev/athena_result_sets/lambda_partitions_update/ --work-group HdpDeveloper --output text
+2022-12-31 11:44:58 Athena Execution id=5fdc867c-3ba7-4cbf-a653-7622a7d6efd4
+
+
+
+2022-12-31 11:44:58 line_cnt=1
+2022-12-31 11:44:59 Query 5fdc867c-3ba7-4cbf-a653-7622a7d6efd4 status => RUNNING ,
+2022-12-31 11:44:59 still running, write id 5fdc867c-3ba7-4cbf-a653-7622a7d6efd4 to run file => /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp.execution_id.txt.running
+2022-12-31 11:45:04 line_cnt=1
+2022-12-31 11:45:05 Query 5fdc867c-3ba7-4cbf-a653-7622a7d6efd4 status => RUNNING ,
+2022-12-31 11:45:05 still running, write id 5fdc867c-3ba7-4cbf-a653-7622a7d6efd4 to run file => /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp.execution_id.txt.running
+2022-12-31 11:45:10 line_cnt=1
+2022-12-31 11:45:11 Query 5fdc867c-3ba7-4cbf-a653-7622a7d6efd4 status => SUCCEEDED ,
+2022-12-31 11:45:16 line_cnt=0
+2022-12-31 11:45:16 ALL RECORDS PROCESSED
+2022-12-31 11:45:16 ====================================================================
+
+
+
+insert_uom succeeded..
+executing insert_data_quality..
+start create_athena_objects
+/home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp
+-rw-r--r-- 1 s362807 users 1289 Dec 31 11:45 /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp
+2022-12-31 11:45:16 submit file /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp to Athena
+
+2022-12-31 11:45:16 ====================================================================
+
+--DATA_QUALITY aggregation
+insert INTO stg_vee.xfrm_audit_reading_ivl_vee_src
+(
+  aep_usage_dt, 
+  aep_usage_type, 
+  name_register, 
+  aep_data_quality_cd , 
+  aep_no_of_intvl , 
+  intvl_cnt , 
+  intvl_usg , 
+  unq_meter_count , 
+  hdp_insert_dttm ,
+  run_dt , 
+  aep_opco , 
+  aggr_type 
+)
+select 
+	usage_date aep_usage_dt,
+	aep_usage_type,
+	measr_comp_type_cd name_register,
+	case 
+		when msrmt_cond_flg IN('501000','501000','501001','501002','501003','501004','501005','501006','501007','501008') then 
+			'REGULAR' 
+	Else 
+		'ESTIMATE' 
+	END aep_data_quality_cd,
+	'' aep_no_of_intvl ,
+	cast( sum(cnt_msrmt_val) as bigint) src_intvl_cnt,
+	cast( sum(tot_msrmt_val) as double) src_intvl_usg,
+	COUNT(distinct adhoc_char_val) src_unq_meter_count,
+	cast( current_timestamp as varchar) hdp_insert_dttm , 
+
+	'2022-12-19' Run_dt,
+	aep_opco,
+	'DATA_QUALITY' aggr_type
+from 
+	stg_vee.stg_measurement_audit
+where 	
+	aep_usage_type = 'interval' 
+	and measr_comp_type_cd in('E-KWH-15-DEL','E-KWH-15-REC')
+	and usage_date < '2022-12-19'
+group by 
+	'2022-12-19' ,
+	'DATA_QUALITY',
+	aep_opco,
+	usage_date ,
+	aep_usage_type,
+	measr_comp_type_cd,
+	case when msrmt_cond_flg IN('501000','501000','501001','501002','501003','501004','501005','501006','501007','501008') then 'REGULAR' Else 'ESTIMATE' END ;
+2022-12-31 11:45:16 ====================================================================
+
+2022-12-31 11:45:16 aws athena start-query-execution --query-string file:///home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp --result-configuration OutputLocation=s3://aep-datalake-user-data-dev/athena_result_sets/lambda_partitions_update/ --work-group HdpDeveloper --output text
+2022-12-31 11:45:17 Athena Execution id=722fa052-a684-4aef-a31a-9825446e72d4
+
+
+
+2022-12-31 11:45:17 line_cnt=1
+2022-12-31 11:45:18 Query 722fa052-a684-4aef-a31a-9825446e72d4 status => RUNNING ,
+2022-12-31 11:45:18 still running, write id 722fa052-a684-4aef-a31a-9825446e72d4 to run file => /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp.execution_id.txt.running
+2022-12-31 11:45:23 line_cnt=1
+2022-12-31 11:45:24 Query 722fa052-a684-4aef-a31a-9825446e72d4 status => SUCCEEDED ,
+2022-12-31 11:45:29 line_cnt=0
+2022-12-31 11:45:29 ALL RECORDS PROCESSED
+2022-12-31 11:45:29 ====================================================================
+
+
+
+insert_data_quality succeeded..
+executing insert_zero_usage..
+start create_athena_objects
+/home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp
+-rw-r--r-- 1 s362807 users 1798 Dec 31 11:45 /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp
+2022-12-31 11:45:30 submit file /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp to Athena
+
+2022-12-31 11:45:30 ====================================================================
+
+--ZERO_USAGE aggregation
+insert INTO stg_vee.xfrm_audit_reading_ivl_vee_src
+(
+  aep_usage_dt, 
+  aep_usage_type, 
+  name_register, 
+  aep_data_quality_cd , 
+  aep_no_of_intvl , 
+  intvl_cnt , 
+  intvl_usg , 
+  unq_meter_count , 
+  hdp_insert_dttm ,
+  run_dt , 
+  aep_opco , 
+  aggr_type 
+)
+select 
+  aep_usage_dt , 
+  aep_usage_type , 
+  name_register ,   
+  aep_data_quality_cd ,
+  '' aep_no_of_intvl ,
+  cast( src_intvl_cnt as bigint) src_intvl_cnt , 
+  cast( src_intvl_usg as double) src_intvl_usg,
+  src_unq_meter_count , 
+  cast( current_timestamp as varchar) hdp_insert_dttm , 
+  run_dt , 
+  aep_opco ,
+  aggr_type
+from 
+(
+	select 
+	  run_dt , 
+	  aggr_type,
+	  aep_opco ,
+	  aep_usage_dt , 
+	  aep_usage_type , 
+	  name_register ,   
+	  aep_data_quality_cd ,
+	  sum(aep_no_of_intvl) src_intvl_cnt, 
+	  count(serialnumber) src_unq_meter_count,
+	  sum(intvl_usg) src_intvl_usg
+	from 
+		(
+			select 
+				'2022-12-19' Run_dt,
+				'ZERO_USAGE' aggr_type,
+				aep_opco,
+				usage_date aep_usage_dt,
+				aep_usage_type,
+				measr_comp_type_cd name_register,
+				split(adhoc_char_val,'-')[1] serialnumber,
+				msrmt_cond_flg aep_data_quality_cd,
+				sum(cnt_msrmt_val) aep_no_of_intvl,
+				sum(tot_msrmt_val) intvl_usg
+			from 
+				stg_vee.stg_measurement_audit
+			where 	
+				aep_usage_type = 'interval' 
+				and measr_comp_type_cd in('E-KWH-15-DEL','E-KWH-15-REC')
+			--	and usage_date > '${START_DATE}'	
+				and usage_date < '2022-12-19'
+			group by 
+				'2022-12-19' ,
+				'ZERO_USAGE',
+				aep_opco,
+				usage_date ,
+				aep_usage_type,
+				measr_comp_type_cd,
+				split(adhoc_char_val,'-')[1],
+				msrmt_cond_flg
+		)select_rec
+	where
+		intvl_usg = 0
+	group by
+	  run_dt , 
+	  aggr_type,
+	  aep_opco ,
+	  aep_usage_dt , 
+	  aep_usage_type , 
+	  name_register ,
+	  aep_data_quality_cd
+)aggr_tbl;
+2022-12-31 11:45:30 ====================================================================
+
+2022-12-31 11:45:30 aws athena start-query-execution --query-string file:///home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp --result-configuration OutputLocation=s3://aep-datalake-user-data-dev/athena_result_sets/lambda_partitions_update/ --work-group HdpDeveloper --output text
+2022-12-31 11:45:31 Athena Execution id=c399d038-ef60-4d54-a1c2-70a3dca5efe5
+
+
+
+2022-12-31 11:45:31 line_cnt=1
+2022-12-31 11:45:32 Query c399d038-ef60-4d54-a1c2-70a3dca5efe5 status => RUNNING ,
+2022-12-31 11:45:32 still running, write id c399d038-ef60-4d54-a1c2-70a3dca5efe5 to run file => /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp.execution_id.txt.running
+2022-12-31 11:45:37 line_cnt=1
+2022-12-31 11:45:38 Query c399d038-ef60-4d54-a1c2-70a3dca5efe5 status => RUNNING ,
+2022-12-31 11:45:38 still running, write id c399d038-ef60-4d54-a1c2-70a3dca5efe5 to run file => /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp.execution_id.txt.running
+2022-12-31 11:45:43 line_cnt=1
+2022-12-31 11:45:44 Query c399d038-ef60-4d54-a1c2-70a3dca5efe5 status => SUCCEEDED ,
+2022-12-31 11:45:49 line_cnt=0
+2022-12-31 11:45:49 ALL RECORDS PROCESSED
+2022-12-31 11:45:49 ====================================================================
+
+
+
+insert_zero_usage succeeded..
+executing insert_interval_count..
+2022-12-31 11:45:49 aws s3 rm --recursive s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/20221231_113635_00014_5m733_0488e5d4-8873-43d9-b645-cfee69041f30.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/20221231_113635_00014_5m733_08c2b4d3-8872-49ba-b4de-7d790a922a96.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/20221231_113635_00014_5m733_595e7b86-5b42-4765-9780-0d27ed5cec6c.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/20221231_113635_00014_5m733_704a6454-ef7f-479b-8c38-cbce8920fdb4.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/20221231_113635_00014_5m733_08c3db0d-353b-4f9d-9d78-9f3986a9b509.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/20221231_113635_00014_5m733_0a2ee40b-4bd3-46a2-b169-53849a69d106.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/20221231_113635_00014_5m733_10700034-586e-422a-b731-b048d9566d15.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/20221231_113635_00014_5m733_7400dd12-2b04-4914-9fed-25969c06c2dd.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/20221231_113635_00014_5m733_7d0bf4f5-f3bf-4f21-97a6-499a86a44ad7.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/20221231_113635_00014_5m733_741f357d-bf1d-4a19-bd57-ac2ea3b9a8b5.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/20221231_113635_00014_5m733_3251a536-a831-4733-bb73-864456dc7809.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/20221231_113635_00014_5m733_2578df31-65ea-4a70-9829-b278456126ad.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/20221231_113635_00014_5m733_73547acb-0e94-4f72-84ae-25cafc7bf96f.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/20221231_113635_00014_5m733_84ee214e-4d25-4630-b79b-410bf633e3e3.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/20221231_113635_00014_5m733_7d2c44fb-f26c-469c-8c8a-1f99a0c636a4.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/20221231_113635_00014_5m733_35b641a2-5889-473c-92af-f17955f802ea.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/20221231_113635_00014_5m733_94e1ae2a-86e3-43ca-ae64-8d31716a1f55.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/20221231_113635_00014_5m733_2c12a729-ec1d-4d82-91cf-cfd255ea6fd1.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/20221231_113635_00014_5m733_cb10e962-af9a-4303-a8cd-99080ab54065.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/20221231_113635_00014_5m733_bbf2973a-ae92-45fe-884d-bebd1ff7ab1d.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/20221231_113635_00014_5m733_ab30f6f6-2db6-49a9-ac89-2e18a8670bb3.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/20221231_113635_00014_5m733_cbbc6860-89dc-4e9d-a1d3-73b3d4d2eb5c.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/20221231_113635_00014_5m733_2c2277ab-6f5d-4f81-8fb4-0de6dcf0c869.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/20221231_113635_00014_5m733_9e3585d6-5409-4c01-b64f-534d5a6ff5ee.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/20221231_113635_00014_5m733_fd86d13d-8cd4-42db-9691-2ea3022df16a.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/20221231_113635_00014_5m733_cc481ea4-fa8d-493d-9e00-e612c8de6469.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/20221231_113635_00014_5m733_f5f1589e-12c0-490c-9768-f85285fc7bfb.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/20221231_113636_00095_za9ei_1a7d3bc2-617c-45bf-9853-2cb6661ab91a.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/20221231_113635_00014_5m733_f84789f0-022b-4a10-85a1-d2c8ab03ca55.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/20221231_113635_00014_5m733_a5d4e72e-24c9-4115-a1e0-ade3588e301a.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/20221231_113635_00014_5m733_b58ff3e8-0163-4d3e-bdbe-ba988093a9aa.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/20221231_113636_00095_za9ei_20488dd5-d4e5-47e6-95e6-a27ad2e2c349.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/20221231_113636_00095_za9ei_72a74d82-e91b-409b-8605-6d24960803de.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/20221231_113636_00095_za9ei_38dd82ae-d36d-4067-be06-4c59747362de.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/20221231_113636_00095_za9ei_41de338f-c218-44ff-9b82-06d6991b2efc.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/20221231_113636_00095_za9ei_886e744b-c749-4b7e-a7a4-940f4d0d9bb9.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/20221231_113636_00095_za9ei_888756f1-4df9-4af1-9b37-146e20801b22.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/20221231_113636_00095_za9ei_92faab80-3da3-4753-9a51-ffdfaaed6990.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/20221231_113636_00095_za9ei_a0aed061-8fed-43d8-871c-68200ca9a798.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/20221231_113636_00095_za9ei_a4482c84-8b48-4704-8439-99267f9eeba6.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/20221231_113636_00095_za9ei_a001687e-ecf7-48b1-a454-195128224776.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/20221231_113636_00095_za9ei_a7ce0d13-ccb7-4af7-b0fa-a029755a4eb7.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/20221231_113636_00095_za9ei_ad925d14-286b-41c7-8c12-2943fe851d2f.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/20221231_113636_00095_za9ei_c41545b9-8441-4be7-ba66-4236bf354d05.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/20221231_113636_00095_za9ei_bec11e13-c3c4-4c79-98ba-044c2a47ecf1.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/20221231_113636_00095_za9ei_325903d7-199f-4e1e-9bda-714a6a3b3c2f.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/20221231_113636_00095_za9ei_c5a7afbb-9d3c-46ec-b93f-bbe8da030df1.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/20221231_113636_00095_za9ei_c9edeb44-7cf4-4e17-8c5b-9c870dbb7d95.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/20221231_113636_00095_za9ei_e16157ba-9420-45e3-aa53-5a28e5815b68.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/20221231_113636_00095_za9ei_2e37f8fa-c450-484b-ad58-40eb437bac83.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/20221231_113636_00095_za9ei_de6560ff-355c-43d0-9f8b-1cdf49047ef1.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/20221231_113636_00095_za9ei_e5554b3d-5a2c-4ff0-801e-189a8f4a9f7d.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/20221231_113636_00095_za9ei_e2a46daa-bff1-4f23-9bb5-89b844a9e3ec.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/20221231_113636_00095_za9ei_e714ed50-0de6-48b5-b2fb-9f07f92041f6.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/20221231_113636_00095_za9ei_ac84ac78-1f3e-4df6-b970-270549f06d6f.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/20221231_113636_00095_za9ei_ff72fc40-4b67-40b6-af28-1f8e1856baff.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/20221231_113636_00095_za9ei_707e149a-511d-41ec-b3b8-e7bab6f9828e.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/20221231_113636_00095_za9ei_8cc151a9-3bc5-482a-b331-4c950c53b0a3.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/20221231_113636_00095_za9ei_887ce9cc-ccee-40ac-8215-212518e73333.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/20221231_113636_00095_za9ei_f9555263-f2e9-4339-af10-3af50b0c2433.gz
+2022-12-31 11:45:50 Clean-Up ctas location s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src
+start create_athena_objects
+/home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp
+-rw-r--r-- 1 s362807 users 60 Dec 31 11:45 /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp
+2022-12-31 11:45:50 submit file /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp to Athena
+
+2022-12-31 11:45:50 ====================================================================
+
+DROP TABLE IF EXISTS stg_vee.xfrm_ctas_audit_intvl_cnt_src;
+
+2022-12-31 11:45:50 ====================================================================
+
+2022-12-31 11:45:50 aws athena start-query-execution --query-string file:///home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp --result-configuration OutputLocation=s3://aep-datalake-user-data-dev/athena_result_sets/lambda_partitions_update/ --work-group HdpDeveloper --output text
+2022-12-31 11:45:52 Athena Execution id=d4f276d6-d98f-48a8-a0d6-810a240c49d1
+
+
+
+2022-12-31 11:45:52 line_cnt=1
+2022-12-31 11:45:53 Query d4f276d6-d98f-48a8-a0d6-810a240c49d1 status => SUCCEEDED ,
+2022-12-31 11:45:58 line_cnt=0
+2022-12-31 11:45:58 ALL RECORDS PROCESSED
+2022-12-31 11:45:58 ====================================================================
+
+
+
+start create_athena_objects
+/home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp
+-rw-r--r-- 1 s362807 users 1135 Dec 31 11:45 /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp
+2022-12-31 11:45:58 submit file /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp to Athena
+
+2022-12-31 11:45:58 ====================================================================
+
+CREATE TABLE stg_vee.xfrm_ctas_audit_intvl_cnt_src 
+WITH (
+         external_location = 's3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_cnt_src/',
+      format = 'TEXTFILE',
+      field_delimiter = ','
+      )
+AS 
+select  
+	device_config_id,
+	aep_opco,
+	aep_usage_type,
+	usage_date aep_usage_dt,
+	measr_comp_id  ,
+	split(adhoc_char_val,'-')[1] as serialnumber,
+	split(adhoc_char_val,'-')[3] as Device_cd,
+	split(adhoc_char_val,'-')[4] as prog_id,
+	measr_comp_type_cd name_register,
+	case when msrmt_cond_flg IN('501000','501000','501001','501002','501003','501004','501005','501006','501007','501008') then 'A' Else 'E' END aep_data_quality_cd,
+	tot_msrmt_val,
+	avg_msrmt_val,
+	cnt_msrmt_val
+	,dense_rank() over (partition by aep_opco, aep_usage_type, usage_date, split(adhoc_char_val,'-')[1], measr_comp_type_cd order by device_config_id desc,measr_comp_id desc) as row_num
+from 
+	stg_vee.stg_measurement_audit
+where 	
+	aep_usage_type = 'interval' 
+	and measr_comp_type_cd in('E-KWH-15-DEL','E-KWH-15-REC')
+--	and usage_date > '${START_DATE}'	
+	and usage_date < '2022-12-19'
+
+
+
+2022-12-31 11:45:58 ====================================================================
+
+2022-12-31 11:45:58 aws athena start-query-execution --query-string file:///home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp --result-configuration OutputLocation=s3://aep-datalake-user-data-dev/athena_result_sets/lambda_partitions_update/ --work-group HdpDeveloper --output text
+2022-12-31 11:45:59 Athena Execution id=8713f8bc-9f3a-4a5f-a3d4-c597c0c82bf8
+
+
+
+2022-12-31 11:45:59 line_cnt=1
+2022-12-31 11:46:00 Query 8713f8bc-9f3a-4a5f-a3d4-c597c0c82bf8 status => RUNNING ,
+2022-12-31 11:46:00 still running, write id 8713f8bc-9f3a-4a5f-a3d4-c597c0c82bf8 to run file => /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp.execution_id.txt.running
+2022-12-31 11:46:05 line_cnt=1
+2022-12-31 11:46:06 Query 8713f8bc-9f3a-4a5f-a3d4-c597c0c82bf8 status => RUNNING ,
+2022-12-31 11:46:06 still running, write id 8713f8bc-9f3a-4a5f-a3d4-c597c0c82bf8 to run file => /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp.execution_id.txt.running
+2022-12-31 11:46:11 line_cnt=1
+2022-12-31 11:46:12 Query 8713f8bc-9f3a-4a5f-a3d4-c597c0c82bf8 status => RUNNING ,
+2022-12-31 11:46:12 still running, write id 8713f8bc-9f3a-4a5f-a3d4-c597c0c82bf8 to run file => /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp.execution_id.txt.running
+2022-12-31 11:46:17 line_cnt=1
+2022-12-31 11:46:18 Query 8713f8bc-9f3a-4a5f-a3d4-c597c0c82bf8 status => RUNNING ,
+2022-12-31 11:46:18 still running, write id 8713f8bc-9f3a-4a5f-a3d4-c597c0c82bf8 to run file => /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp.execution_id.txt.running
+2022-12-31 11:46:23 line_cnt=1
+2022-12-31 11:46:24 Query 8713f8bc-9f3a-4a5f-a3d4-c597c0c82bf8 status => SUCCEEDED ,
+2022-12-31 11:46:29 line_cnt=0
+2022-12-31 11:46:29 ALL RECORDS PROCESSED
+2022-12-31 11:46:29 ====================================================================
+
+
+
+2022-12-31 11:46:29 drop_create stg_vee.xfrm_ctas_audit_intvl_cnt_src table succeeded..
+2022-12-31 11:46:29 aws s3 rm --recursive s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_96_act_aggr/
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_96_act_aggr/20221231_113658_00093_85zxp_044cbe8e-28fa-42e4-998e-004a137ff074.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_96_act_aggr/20221231_113658_00093_85zxp_0e2435e1-e4d7-4d02-9187-b3b40f934306.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_96_act_aggr/20221231_113658_00093_85zxp_20215e2e-6a76-49d6-b7ea-f4b6f90c0c65.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_96_act_aggr/20221231_113658_00093_85zxp_16934e72-2096-4826-9992-eaae4db43628.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_96_act_aggr/20221231_113658_00093_85zxp_10caf392-8c4e-4223-9fc9-9e50952ac075.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_96_act_aggr/20221231_113658_00093_85zxp_702f5e90-4e4e-45ec-af5b-edd28498e0c8.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_96_act_aggr/20221231_113658_00093_85zxp_8a26f830-96c4-441b-abf3-c23667c4cc4c.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_96_act_aggr/20221231_113658_00093_85zxp_2493cc8e-0e14-41f7-90cc-7024941bff38.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_96_act_aggr/20221231_113658_00093_85zxp_4e920ee8-c087-4a32-9937-fe70e4c9ad21.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_96_act_aggr/20221231_113658_00093_85zxp_398e28df-043c-4cb1-986e-a04965ef8071.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_96_act_aggr/20221231_113658_00093_85zxp_52678a6c-5708-4970-ae79-e3188267f8bb.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_96_act_aggr/20221231_113658_00093_85zxp_9b9a9b54-66b5-4caf-ad17-629f6ba18087.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_96_act_aggr/20221231_113658_00093_85zxp_825b3ac2-9baa-46ea-a7a4-dadf43aceb40.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_96_act_aggr/20221231_113658_00093_85zxp_485a0277-e76a-44aa-899f-45b098e4aae1.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_96_act_aggr/20221231_113658_00093_85zxp_5599b0b5-4539-44fa-b61a-9708457466a3.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_96_act_aggr/20221231_113658_00093_85zxp_5d977821-3fc6-4a3d-bce9-e058284e233e.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_96_act_aggr/20221231_113658_00093_85zxp_ceaeb0a5-9a72-4233-9c3c-c83f3313cf8d.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_96_act_aggr/20221231_113658_00093_85zxp_c6f1ae85-5aa6-4c91-8121-57e4cf51dcfb.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_96_act_aggr/20221231_113658_00093_85zxp_df3e5413-afa6-49f5-b84b-4cca7d1739a9.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_96_act_aggr/20221231_113658_00093_85zxp_5946a65a-f3a0-4a2e-9435-e69b536258cb.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_96_act_aggr/20221231_113658_00093_85zxp_6d434551-897d-4389-ab08-f8f7d26b8d88.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_96_act_aggr/20221231_113658_00093_85zxp_baf51e57-1151-4799-ba3b-0502eb5e8d56.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_96_act_aggr/20221231_113658_00093_85zxp_e884071f-9320-47df-9175-b302a198d5ec.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_96_act_aggr/20221231_113658_00093_85zxp_ffac973d-a784-4fd4-939a-edce7546eb74.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_96_act_aggr/20221231_113658_00093_85zxp_e1b19133-5b73-44ae-bdae-ef853e02e021.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_96_act_aggr/20221231_113658_00093_85zxp_ddc05ee2-6e3d-4883-8866-3d483e3047c4.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_96_act_aggr/20221231_113658_00093_85zxp_bc27ebf5-d9e8-4334-baf9-b961010c8a05.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_96_act_aggr/20221231_113658_00093_85zxp_de4b2e8d-7ca8-4226-8157-fc15c061c7c2.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_96_act_aggr/20221231_113658_00093_85zxp_d13ede02-b74e-4d40-b79f-190383e7c690.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_96_act_aggr/20221231_113658_00093_85zxp_798b6baa-342d-415f-8a2a-9528a1ebba14.gz
+2022-12-31 11:46:30 Clean-Up ctas location s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_96_act_aggr
+start create_athena_objects
+/home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp
+-rw-r--r-- 1 s362807 users 64 Dec 31 11:46 /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp
+2022-12-31 11:46:30 submit file /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp to Athena
+
+2022-12-31 11:46:30 ====================================================================
+
+DROP TABLE IF EXISTS stg_vee.xfrm_ctas_audit_intvl_96_act_aggr;
+
+2022-12-31 11:46:30 ====================================================================
+
+2022-12-31 11:46:30 aws athena start-query-execution --query-string file:///home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp --result-configuration OutputLocation=s3://aep-datalake-user-data-dev/athena_result_sets/lambda_partitions_update/ --work-group HdpDeveloper --output text
+2022-12-31 11:46:31 Athena Execution id=a9b9fa2e-2c2c-4c34-ace2-e36a8af67406
+
+
+
+2022-12-31 11:46:31 line_cnt=1
+2022-12-31 11:46:32 Query a9b9fa2e-2c2c-4c34-ace2-e36a8af67406 status => SUCCEEDED ,
+2022-12-31 11:46:37 line_cnt=0
+2022-12-31 11:46:37 ALL RECORDS PROCESSED
+2022-12-31 11:46:37 ====================================================================
+
+
+
+start create_athena_objects
+/home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp
+-rw-r--r-- 1 s362807 users 522 Dec 31 11:46 /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp
+2022-12-31 11:46:38 submit file /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp to Athena
+
+2022-12-31 11:46:38 ====================================================================
+
+CREATE TABLE stg_vee.xfrm_ctas_audit_intvl_96_act_aggr
+WITH (
+      external_location = 's3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_96_act_aggr/',
+      format = 'TEXTFILE',
+      field_delimiter = ','
+      )
+AS 
+select  
+	aep_opco,
+	aep_usage_type,
+	aep_usage_dt,
+	name_register,
+	serialnumber,
+	'96' as aep_no_of_intvl,
+	tot_msrmt_val,
+	avg_msrmt_val,
+	cnt_msrmt_val
+
+from stg_vee.xfrm_ctas_audit_intvl_cnt_src 
+where  cnt_msrmt_val=96 and aep_data_quality_cd = 'A';
+
+
+2022-12-31 11:46:38 ====================================================================
+
+2022-12-31 11:46:38 aws athena start-query-execution --query-string file:///home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp --result-configuration OutputLocation=s3://aep-datalake-user-data-dev/athena_result_sets/lambda_partitions_update/ --work-group HdpDeveloper --output text
+2022-12-31 11:46:39 Athena Execution id=ab30366a-a569-46d1-a1a1-d527e40e734b
+
+
+
+2022-12-31 11:46:39 line_cnt=1
+2022-12-31 11:46:40 Query ab30366a-a569-46d1-a1a1-d527e40e734b status => RUNNING ,
+2022-12-31 11:46:40 still running, write id ab30366a-a569-46d1-a1a1-d527e40e734b to run file => /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp.execution_id.txt.running
+2022-12-31 11:46:45 line_cnt=1
+2022-12-31 11:46:49 Query ab30366a-a569-46d1-a1a1-d527e40e734b status => SUCCEEDED ,
+2022-12-31 11:46:54 line_cnt=0
+2022-12-31 11:46:54 ALL RECORDS PROCESSED
+2022-12-31 11:46:55 ====================================================================
+
+
+
+2022-12-31 11:46:55 drop_create stg_vee.xfrm_ctas_audit_intvl_96_act_aggr table succeeded..
+2022-12-31 11:46:55 aws s3 rm --recursive s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_96_est_aggr/
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_96_est_aggr/20221231_113738_00016_8i7cg_032d0186-2d7b-4264-b464-e09a2baad58e.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_96_est_aggr/20221231_113738_00016_8i7cg_16f73ddb-ea6e-42f1-bce8-178b1411b7d2.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_96_est_aggr/20221231_113738_00016_8i7cg_2085099c-256e-4ee7-a608-06926ef22aad.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_96_est_aggr/20221231_113738_00016_8i7cg_772f7544-10aa-491d-b2d8-7e29ec841e35.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_96_est_aggr/20221231_113738_00016_8i7cg_19568798-a32f-47ec-958c-471f5284485d.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_96_est_aggr/20221231_113738_00016_8i7cg_2e1b8b15-9279-427b-a839-44b0dc7150b0.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_96_est_aggr/20221231_113738_00016_8i7cg_73befdcb-78ef-4809-8da7-865cac9eeceb.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_96_est_aggr/20221231_113738_00016_8i7cg_33882fcd-8a30-4877-a3a7-f602023c279d.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_96_est_aggr/20221231_113738_00016_8i7cg_7dd71860-aef0-4f18-8e43-3bc6c6724595.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_96_est_aggr/20221231_113738_00016_8i7cg_6b3e0b7a-001b-4d16-ae1a-666d259c6d01.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_96_est_aggr/20221231_113738_00016_8i7cg_2b01acf8-405f-4b18-b725-22579ce71695.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_96_est_aggr/20221231_113738_00016_8i7cg_adb4ac17-b7de-4e54-b490-6cb081ab36fe.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_96_est_aggr/20221231_113738_00016_8i7cg_e87dec31-dae9-4732-b389-d7c82b8f5c4a.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_96_est_aggr/20221231_113738_00016_8i7cg_401b79ab-13b8-48c1-82d9-372803b741b9.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_96_est_aggr/20221231_113738_00016_8i7cg_e074cd42-5ebe-4cd5-afec-a38b53d2ad78.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_96_est_aggr/20221231_113738_00016_8i7cg_ce5ab946-1054-4545-afa8-5969a7145000.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_96_est_aggr/20221231_113738_00016_8i7cg_ca62ceef-7f2d-49e7-91c6-55399e0f3473.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_96_est_aggr/20221231_113738_00016_8i7cg_e5dc1b88-d482-4c85-8fc8-42ec9054e9e3.gz
+2022-12-31 11:46:56 Clean-Up ctas location s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_96_est_aggr
+start create_athena_objects
+/home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp
+-rw-r--r-- 1 s362807 users 64 Dec 31 11:46 /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp
+2022-12-31 11:46:56 submit file /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp to Athena
+
+2022-12-31 11:46:56 ====================================================================
+
+DROP TABLE IF EXISTS stg_vee.xfrm_ctas_audit_intvl_96_est_aggr;
+
+2022-12-31 11:46:56 ====================================================================
+
+2022-12-31 11:46:56 aws athena start-query-execution --query-string file:///home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp --result-configuration OutputLocation=s3://aep-datalake-user-data-dev/athena_result_sets/lambda_partitions_update/ --work-group HdpDeveloper --output text
+2022-12-31 11:46:57 Athena Execution id=a48e8466-a239-4b22-bbea-6cd7d22fb244
+
+
+
+2022-12-31 11:46:57 line_cnt=1
+2022-12-31 11:46:58 Query a48e8466-a239-4b22-bbea-6cd7d22fb244 status => SUCCEEDED ,
+2022-12-31 11:47:03 line_cnt=0
+2022-12-31 11:47:03 ALL RECORDS PROCESSED
+2022-12-31 11:47:03 ====================================================================
+
+
+
+start create_athena_objects
+/home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp
+-rw-r--r-- 1 s362807 users 943 Dec 31 11:47 /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp
+2022-12-31 11:47:04 submit file /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp to Athena
+
+2022-12-31 11:47:04 ====================================================================
+
+CREATE TABLE stg_vee.xfrm_ctas_audit_intvl_96_est_aggr
+WITH (
+      external_location = 's3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_96_est_aggr/',
+      format = 'TEXTFILE',
+      field_delimiter = ','
+      )
+AS 
+  
+select  
+	intvl.aep_opco,
+	intvl.aep_usage_type,
+	intvl.aep_usage_dt,
+	intvl.name_register,
+	intvl.serialnumber,
+	'96' as aep_no_of_intvl,
+	tot_msrmt_val,
+	avg_msrmt_val,
+	cnt_msrmt_val
+from stg_vee.xfrm_ctas_audit_intvl_cnt_src intvl
+where 
+not exists 
+(
+	select 1 from 
+	(
+		select  distinct aep_opco,aep_usage_type,aep_usage_dt,name_register,serialnumber
+		from stg_vee.xfrm_ctas_audit_intvl_96_act_aggr
+	) mtr where mtr.aep_opco = intvl.aep_opco 
+	and mtr.aep_usage_type = intvl.aep_usage_type and mtr.aep_usage_dt = intvl.aep_usage_dt and mtr.serialnumber = intvl.serialnumber and mtr.name_register = intvl.name_register
+) and cnt_msrmt_val = 96 and row_num =1;
+
+2022-12-31 11:47:04 ====================================================================
+
+2022-12-31 11:47:04 aws athena start-query-execution --query-string file:///home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp --result-configuration OutputLocation=s3://aep-datalake-user-data-dev/athena_result_sets/lambda_partitions_update/ --work-group HdpDeveloper --output text
+2022-12-31 11:47:05 Athena Execution id=f3354593-a25f-4bd0-b520-f331e3b743ee
+
+
+
+2022-12-31 11:47:05 line_cnt=1
+2022-12-31 11:47:06 Query f3354593-a25f-4bd0-b520-f331e3b743ee status => RUNNING ,
+2022-12-31 11:47:06 still running, write id f3354593-a25f-4bd0-b520-f331e3b743ee to run file => /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp.execution_id.txt.running
+2022-12-31 11:47:11 line_cnt=1
+2022-12-31 11:47:12 Query f3354593-a25f-4bd0-b520-f331e3b743ee status => RUNNING ,
+2022-12-31 11:47:12 still running, write id f3354593-a25f-4bd0-b520-f331e3b743ee to run file => /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp.execution_id.txt.running
+2022-12-31 11:47:17 line_cnt=1
+2022-12-31 11:47:18 Query f3354593-a25f-4bd0-b520-f331e3b743ee status => SUCCEEDED ,
+2022-12-31 11:47:23 line_cnt=0
+2022-12-31 11:47:23 ALL RECORDS PROCESSED
+2022-12-31 11:47:23 ====================================================================
+
+
+
+2022-12-31 11:47:23 drop_create stg_vee.xfrm_ctas_audit_intvl_96_est_aggr table succeeded..
+2022-12-31 11:47:23 aws s3 rm --recursive s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_not_96_aggr/
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_not_96_aggr/20221231_113818_00109_phbr5_09f54017-2a0d-4e85-a89c-bb1bc66aaf16.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_not_96_aggr/20221231_113818_00109_phbr5_0e1a05b6-5fe0-4eae-a1f5-9a2c9a2e0d9f.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_not_96_aggr/20221231_113818_00109_phbr5_56d84d7a-51bf-4119-b4b4-bc1853c1b0a3.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_not_96_aggr/20221231_113818_00109_phbr5_51282f8f-476b-4977-a082-251a59b4fb75.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_not_96_aggr/20221231_113818_00109_phbr5_33920c1a-0761-4aba-b7da-5a6f7b38686a.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_not_96_aggr/20221231_113818_00109_phbr5_2b1fb482-5cdf-4a87-8660-481453e4715c.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_not_96_aggr/20221231_113818_00109_phbr5_54128a4b-7fa7-4411-9b61-69fd2d50e440.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_not_96_aggr/20221231_113818_00109_phbr5_561ae95a-de86-4cf3-b6f5-24b3549a770d.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_not_96_aggr/20221231_113818_00109_phbr5_460f9f91-3988-46eb-b115-7df5cd20ccbf.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_not_96_aggr/20221231_113818_00109_phbr5_1eaf0e6c-77c5-475a-9e5b-f08868de7cd4.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_not_96_aggr/20221231_113818_00109_phbr5_181a4328-85f4-4232-9c6d-83acf155918e.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_not_96_aggr/20221231_113818_00109_phbr5_69811635-a0bf-41e1-b475-936bbde296e8.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_not_96_aggr/20221231_113818_00109_phbr5_46e90844-9455-43ce-af3c-f6a48cac9933.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_not_96_aggr/20221231_113818_00109_phbr5_502fa5e9-90ff-47fe-bcf2-1a032efbecfb.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_not_96_aggr/20221231_113818_00109_phbr5_9a4b9faf-a453-428a-847b-814a00c770ba.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_not_96_aggr/20221231_113818_00109_phbr5_8908b72f-0b0f-4be1-977c-ea0a35a43aad.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_not_96_aggr/20221231_113818_00109_phbr5_a4c2daf6-b2a8-4544-be83-46792a23e38f.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_not_96_aggr/20221231_113818_00109_phbr5_9e3e0527-988c-473b-9a57-297ee80cf247.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_not_96_aggr/20221231_113818_00109_phbr5_ad4e47bd-230c-48c0-b887-7e1acbcf642e.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_not_96_aggr/20221231_113818_00109_phbr5_f133b967-e674-4094-8ee9-6203f4651aa8.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_not_96_aggr/20221231_113818_00109_phbr5_c840e07c-b006-4f8b-925c-9b1082dd0986.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_not_96_aggr/20221231_113818_00109_phbr5_d5aa152f-f8ee-4ee4-8227-d328725d94a3.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_not_96_aggr/20221231_113818_00109_phbr5_3cc1afa8-0974-42fa-a348-ff2928ca66e4.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_not_96_aggr/20221231_113818_00109_phbr5_fcccb87d-5153-4adc-958c-10aa1a54cc21.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_not_96_aggr/20221231_113818_00109_phbr5_d41936d5-b67e-45d2-bd5d-dac8fd872be0.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_not_96_aggr/20221231_113818_00109_phbr5_ff83cd5a-d1cd-4e5e-8fce-e37a04a54e8d.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_not_96_aggr/20221231_113818_00109_phbr5_ae8b33e3-5e17-4db4-b84d-4d4d349e8d01.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_not_96_aggr/20221231_113818_00109_phbr5_f8ecce70-009b-4916-859b-cff5dbd533a2.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_not_96_aggr/20221231_113818_00109_phbr5_fb7de935-49d3-4491-a8f0-2349366a8afe.gz
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_not_96_aggr/20221231_113818_00109_phbr5_38c2027f-c859-4c3d-9c20-6c2d3d5e39fd.gz
+2022-12-31 11:47:24 Clean-Up ctas location s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_not_96_aggr
+start create_athena_objects
+/home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp
+-rw-r--r-- 1 s362807 users 64 Dec 31 11:47 /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp
+2022-12-31 11:47:24 submit file /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp to Athena
+
+2022-12-31 11:47:24 ====================================================================
+
+DROP TABLE IF EXISTS stg_vee.xfrm_ctas_audit_intvl_not_96_aggr;
+
+2022-12-31 11:47:24 ====================================================================
+
+2022-12-31 11:47:24 aws athena start-query-execution --query-string file:///home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp --result-configuration OutputLocation=s3://aep-datalake-user-data-dev/athena_result_sets/lambda_partitions_update/ --work-group HdpDeveloper --output text
+2022-12-31 11:47:25 Athena Execution id=70137ff0-24f4-40c4-9bc6-8cfc01363ad6
+
+
+
+2022-12-31 11:47:25 line_cnt=1
+2022-12-31 11:47:26 Query 70137ff0-24f4-40c4-9bc6-8cfc01363ad6 status => RUNNING ,
+2022-12-31 11:47:26 still running, write id 70137ff0-24f4-40c4-9bc6-8cfc01363ad6 to run file => /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp.execution_id.txt.running
+2022-12-31 11:47:31 line_cnt=1
+2022-12-31 11:47:32 Query 70137ff0-24f4-40c4-9bc6-8cfc01363ad6 status => SUCCEEDED ,
+2022-12-31 11:47:37 line_cnt=0
+2022-12-31 11:47:37 ALL RECORDS PROCESSED
+2022-12-31 11:47:37 ====================================================================
+
+
+
+start create_athena_objects
+/home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp
+-rw-r--r-- 1 s362807 users 1149 Dec 31 11:47 /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp
+2022-12-31 11:47:37 submit file /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp to Athena
+
+2022-12-31 11:47:37 ====================================================================
+
+CREATE TABLE stg_vee.xfrm_ctas_audit_intvl_not_96_aggr
+WITH (
+      external_location = 's3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_not_96_aggr/',
+      format = 'TEXTFILE',
+      field_delimiter = ','
+      )
+AS 
+select  
+aep_opco,
+aep_usage_type,
+aep_usage_dt,
+name_register,
+serialnumber,
+--case when aep_no_of_intvl = '96' then '96' when aep_no_of_intvl < '96' then '<96' else '>96' end aep_no_of_intvl,
+cast(aep_no_of_intvl as varchar) aep_no_of_intvl,
+--sum(tot_msrmt_val) tot_msrmt_val,
+tot_msrmt_val,
+--avg(avg_msrmt_val) avg_msrmt_val,
+avg_msrmt_val,
+--sum(intvl.aep_no_of_intvl) cnt_msrmt_val
+cast(aep_no_of_intvl as INT) cnt_msrmt_val
+from 
+(
+	select  
+		intvl.aep_opco,
+		intvl.aep_usage_type,
+		intvl.aep_usage_dt,
+		intvl.name_register,
+		intvl.serialnumber,
+		sum(tot_msrmt_val) tot_msrmt_val,
+		avg(avg_msrmt_val) avg_msrmt_val,
+		sum(intvl.cnt_msrmt_val) aep_no_of_intvl
+	from stg_vee.xfrm_ctas_audit_intvl_cnt_src intvl
+
+	where cnt_msrmt_val <> 96 and row_num =1
+
+	group by
+	aep_opco,
+	aep_usage_type,
+	aep_usage_dt,
+	name_register,
+	serialnumber
+) intvl;
+
+
+2022-12-31 11:47:37 ====================================================================
+
+2022-12-31 11:47:38 aws athena start-query-execution --query-string file:///home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp --result-configuration OutputLocation=s3://aep-datalake-user-data-dev/athena_result_sets/lambda_partitions_update/ --work-group HdpDeveloper --output text
+2022-12-31 11:47:38 Athena Execution id=2d8e35a1-d877-425c-9f52-5ab9f04813b4
+
+
+
+2022-12-31 11:47:39 line_cnt=1
+2022-12-31 11:47:39 Query 2d8e35a1-d877-425c-9f52-5ab9f04813b4 status => RUNNING ,
+2022-12-31 11:47:39 still running, write id 2d8e35a1-d877-425c-9f52-5ab9f04813b4 to run file => /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp.execution_id.txt.running
+2022-12-31 11:47:44 line_cnt=1
+2022-12-31 11:47:45 Query 2d8e35a1-d877-425c-9f52-5ab9f04813b4 status => SUCCEEDED ,
+2022-12-31 11:47:50 line_cnt=0
+2022-12-31 11:47:50 ALL RECORDS PROCESSED
+2022-12-31 11:47:50 ====================================================================
+
+
+
+2022-12-31 11:47:50 drop_create stg_vee.xfrm_ctas_audit_intvl_not_96_aggr table succeeded..
+2022-12-31 11:47:50 aws s3 rm --recursive s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_aggr/
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_aggr/20221231_113840_00034_7b4ye_b868beee-915c-4d5c-a35b-d101c2f1bdfd.gz
+2022-12-31 11:47:52 Clean-Up ctas location s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_aggr
+start create_athena_objects
+/home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp
+-rw-r--r-- 1 s362807 users 57 Dec 31 11:47 /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp
+2022-12-31 11:47:52 submit file /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp to Athena
+
+2022-12-31 11:47:52 ====================================================================
+
+DROP TABLE IF EXISTS stg_vee.xfrm_ctas_audit_intvl_aggr;
+
+2022-12-31 11:47:52 ====================================================================
+
+2022-12-31 11:47:52 aws athena start-query-execution --query-string file:///home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp --result-configuration OutputLocation=s3://aep-datalake-user-data-dev/athena_result_sets/lambda_partitions_update/ --work-group HdpDeveloper --output text
+2022-12-31 11:47:53 Athena Execution id=e2e23a97-b3f4-4003-86fb-c371a898f16e
+
+
+
+2022-12-31 11:47:53 line_cnt=1
+2022-12-31 11:47:54 Query e2e23a97-b3f4-4003-86fb-c371a898f16e status => RUNNING ,
+2022-12-31 11:47:54 still running, write id e2e23a97-b3f4-4003-86fb-c371a898f16e to run file => /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp.execution_id.txt.running
+2022-12-31 11:47:59 line_cnt=1
+2022-12-31 11:48:00 Query e2e23a97-b3f4-4003-86fb-c371a898f16e status => SUCCEEDED ,
+2022-12-31 11:48:05 line_cnt=0
+2022-12-31 11:48:05 ALL RECORDS PROCESSED
+2022-12-31 11:48:05 ====================================================================
+
+
+
+start create_athena_objects
+/home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp
+-rw-r--r-- 1 s362807 users 1327 Dec 31 11:48 /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp
+2022-12-31 11:48:05 submit file /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp to Athena
+
+2022-12-31 11:48:05 ====================================================================
+
+CREATE TABLE stg_vee.xfrm_ctas_audit_intvl_aggr
+WITH (
+      external_location = 's3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_intvl_aggr/',
+      format = 'TEXTFILE',
+      field_delimiter = ','
+      )
+AS 
+select  
+	aep_opco,
+	aep_usage_dt,
+	aep_usage_type,
+	name_register,
+	aep_no_of_intvl aep_no_of_intvl,
+	sum(cnt_msrmt_val) cnt_msrmt_val,
+	sum(tot_msrmt_val) tot_msrmt_val,
+	count(distinct serialnumber) unq_srl_nb
+from 
+	(
+		select  
+		aep_opco,
+		aep_usage_type,
+		aep_usage_dt,
+		name_register,
+		serialnumber,
+		aep_no_of_intvl,
+		tot_msrmt_val,
+		avg_msrmt_val,
+		cnt_msrmt_val
+		from stg_vee.xfrm_ctas_audit_intvl_96_act_aggr intvl
+		union all
+		select  
+		aep_opco,
+		aep_usage_type,
+		aep_usage_dt,
+		name_register,
+		serialnumber,
+		aep_no_of_intvl,
+		tot_msrmt_val,
+		avg_msrmt_val,
+		cnt_msrmt_val
+		from stg_vee.xfrm_ctas_audit_intvl_96_est_aggr intvl
+		UNION ALL
+		select  
+		aep_opco,
+		aep_usage_type,
+		aep_usage_dt,
+		name_register,
+		serialnumber,
+		aep_no_of_intvl,
+		tot_msrmt_val,
+		avg_msrmt_val,
+		cnt_msrmt_val 
+		from  stg_vee.xfrm_ctas_audit_intvl_not_96_aggr	
+	)select_rec
+group by
+	aep_opco,
+	aep_usage_dt,
+	aep_usage_type,
+	name_register,
+	aep_no_of_intvl
+order by 
+aep_opco,
+aep_usage_type,
+aep_usage_dt
+;
+2022-12-31 11:48:05 ====================================================================
+
+2022-12-31 11:48:05 aws athena start-query-execution --query-string file:///home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp --result-configuration OutputLocation=s3://aep-datalake-user-data-dev/athena_result_sets/lambda_partitions_update/ --work-group HdpDeveloper --output text
+2022-12-31 11:48:06 Athena Execution id=16ac8be2-9a5a-4c5f-bc19-e49c04fb1b7c
+
+
+
+2022-12-31 11:48:06 line_cnt=1
+2022-12-31 11:48:07 Query 16ac8be2-9a5a-4c5f-bc19-e49c04fb1b7c status => RUNNING ,
+2022-12-31 11:48:07 still running, write id 16ac8be2-9a5a-4c5f-bc19-e49c04fb1b7c to run file => /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp.execution_id.txt.running
+2022-12-31 11:48:12 line_cnt=1
+2022-12-31 11:48:13 Query 16ac8be2-9a5a-4c5f-bc19-e49c04fb1b7c status => RUNNING ,
+2022-12-31 11:48:13 still running, write id 16ac8be2-9a5a-4c5f-bc19-e49c04fb1b7c to run file => /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp.execution_id.txt.running
+2022-12-31 11:48:18 line_cnt=1
+2022-12-31 11:48:19 Query 16ac8be2-9a5a-4c5f-bc19-e49c04fb1b7c status => SUCCEEDED ,
+2022-12-31 11:48:24 line_cnt=0
+2022-12-31 11:48:24 ALL RECORDS PROCESSED
+2022-12-31 11:48:24 ====================================================================
+
+
+
+2022-12-31 11:48:24 drop_create stg_vee.xfrm_ctas_audit_intvl_aggr table succeeded..
+start create_athena_objects
+/home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp
+-rw-r--r-- 1 s362807 users 774 Dec 31 11:48 /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp
+2022-12-31 11:48:24 submit file /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp to Athena
+
+2022-12-31 11:48:24 ====================================================================
+
+--INTERVAL_COUNT aggregation
+INSERT INTO stg_vee.xfrm_audit_reading_ivl_vee_src
+(
+  aep_usage_dt, 
+  aep_usage_type, 
+  name_register, 
+  aep_data_quality_cd , 
+  aep_no_of_intvl , 
+  intvl_cnt , 
+  intvl_usg , 
+  unq_meter_count , 
+  hdp_insert_dttm ,
+  run_dt , 
+  aep_opco , 
+  aggr_type 
+)
+select 
+  aep_usage_dt , 
+  aep_usage_type , 
+  name_register ,   
+  '' aep_data_quality_cd ,
+  aep_no_of_intvl,
+  cast( cnt_msrmt_val as bigint) cnt_msrmt_val , 
+  cast( tot_msrmt_val as double) tot_msrmt_val,
+  unq_srl_nb , 
+  cast( current_timestamp as varchar) hdp_insert_dttm , 
+  '2022-12-19' run_dt , 
+  aep_opco ,
+  'INTERVAL_COUNT' aggr_type
+from 
+	stg_vee.xfrm_ctas_audit_intvl_aggr
+--order by
+--Run_dt,
+--aep_opco,
+--aep_usage_dt,
+--aep_usage_type,
+--name_register
+;
+
+
+
+2022-12-31 11:48:24 ====================================================================
+
+2022-12-31 11:48:24 aws athena start-query-execution --query-string file:///home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp --result-configuration OutputLocation=s3://aep-datalake-user-data-dev/athena_result_sets/lambda_partitions_update/ --work-group HdpDeveloper --output text
+2022-12-31 11:48:25 Athena Execution id=554333bc-1f3f-4256-8073-4a4fb58ad3a1
+
+
+
+2022-12-31 11:48:25 line_cnt=1
+2022-12-31 11:48:26 Query 554333bc-1f3f-4256-8073-4a4fb58ad3a1 status => RUNNING ,
+2022-12-31 11:48:26 still running, write id 554333bc-1f3f-4256-8073-4a4fb58ad3a1 to run file => /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_src-_export_athena.tmp.execution_id.txt.running
+2022-12-31 11:48:31 line_cnt=1
+2022-12-31 11:48:32 Query 554333bc-1f3f-4256-8073-4a4fb58ad3a1 status => SUCCEEDED ,
+2022-12-31 11:48:37 line_cnt=0
+2022-12-31 11:48:37 ALL RECORDS PROCESSED
+2022-12-31 11:48:37 ====================================================================
+
+
+
+insert_interval_count succeeded..

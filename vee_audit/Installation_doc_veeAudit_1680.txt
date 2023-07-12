@@ -1,0 +1,42 @@
+Deployment Document For vee_audit stg_src tables and audit_gen file (box 1680)
+----------------------------------------------------------
+
+####Autosys: (jil) (/home/hdpapp/mdm_intvl_vee/scripts/autosys/)
+1. HDP1680 Box(one .jil file for 8 jobs)
+	1. HDP1680.jil
+
+-------------------------------	
+
+####Scripts (/home/hdpapp/mdm_intvl_vee/scripts)
+1. /home/hdpapp/mdm_intvl_vee/scripts/xfrm_msrmt_audit_src_athena.sh --> the file should have executable permission for autosys
+2. /home/hdpapp/mdm_intvl_vee/scripts/xfrm_msrmt_audit_gen_athena.sh --> the file should have executable permission for autosys
+
+--------------------------------
+------We can do it later-----
+####Parms (/home/hdpapp/mdm_intvl_vee/parms) 
+	(these two files should already be there in prod)(to be copied from prod)
+1. audit_run_dt.txt 
+2. audit_dates_yyyy-mm-dd.txt 
+
+--------------------------------
+
+####DDLs (/home/hdpapp/mdm_intvl_vee/scripts/hive_ddl) 
+1. /home/hdpapp/mdm_intvl_vee/scripts/hive_ddl/create_table_xfrm_audit_src.hql
+
+2. /home/hdpapp/mdm_intvl_vee/scripts/hive_ddl/create_table_xfrm_ctas_audit_intvl_cnt_src.hql
+3. /home/hdpapp/mdm_intvl_vee/scripts/hive_ddl/create_table_xfrm_ctas_audit_intvl_96_act_aggr.hql
+4. /home/hdpapp/mdm_intvl_vee/scripts/hive_ddl/create_table_xfrm_ctas_audit_intvl_96_est_aggr.hql
+5. /home/hdpapp/mdm_intvl_vee/scripts/hive_ddl/create_table_xfrm_ctas_audit_intvl_not_96_aggr.hql
+6. /home/hdpapp/mdm_intvl_vee/scripts/hive_ddl/create_table_xfrm_ctas_audit_intvl_aggr.hql
+
+7. /home/hdpapp/mdm_intvl_vee/scripts/hive_ddl/create_table_xfrm_ctas_audit_dates.hql
+--------------------------------
+
+####DMLs (/home/hdpapp/mdm_intvl_vee/scripts/hive_dml)
+1. /home/hdpapp/mdm_intvl_vee/scripts/hive_dml/insert_xfrm_audit_src_usage_dt.hql
+2. /home/hdpapp/mdm_intvl_vee/scripts/hive_dml/insert_xfrm_audit_src_uom.hql
+3. /home/hdpapp/mdm_intvl_vee/scripts/hive_dml/insert_xfrm_audit_src_data_quality.hql
+4. /home/hdpapp/mdm_intvl_vee/scripts/hive_dml/insert_xfrm_audit_src_zero_usage.hql
+5. /home/hdpapp/mdm_intvl_vee/scripts/hive_dml/insert_xfrm_audit_src_interval_count.hql
+
+---------------------------------

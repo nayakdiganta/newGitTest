@@ -1,0 +1,66 @@
+Deployment Document For vee_audit stg tgt tables(box 1682)
+----------------------------------------------------------
+	
+####DDLs (to be run one time) 
+1. /home/hdpapp/mdm_intvl_vee/scripts/vee_audit_tgt_create_table_ddl_script.sh
+	(to be run 6 times with env and different opco) (create initial _tgt_opco tables)
+	ex: sh vee_audit_tgt_create_table_ddl_script.sh qa oh
+		sh vee_audit_tgt_create_table_ddl_script.sh qa tx
+		sh vee_audit_tgt_create_table_ddl_script.sh qa ap
+		sh vee_audit_tgt_create_table_ddl_script.sh qa pso
+		sh vee_audit_tgt_create_table_ddl_script.sh qa im
+		sh vee_audit_tgt_create_table_ddl_script.sh qa swp
+
+2. /home/hdpapp/mdm_intvl_vee/scripts/vee_audit_tgt_create_view_ddl_script.sh
+	(to be run 1 time with env) (create the view which will be derived from the above tables)
+	ex: sh vee_audit_tgt_create_view_ddl_script.sh qa
+-------------------------------
+
+####Autosys: (jil) (/home/hdpapp/mdm_intvl_vee/scripts/autosys/)
+1. HDP1682 Box(one .jil file for 6 jobs)
+	1. HDP1682.jil
+-------------------------------	
+
+####Scripts (/home/hdpapp/mdm_intvl_vee/scripts)
+1. /home/hdpapp/mdm_intvl_vee/scripts/xfrm_msrmt_audit_tgt_athena.sh --> the file should have executable permission for autosys
+
+--------------------------------
+####Parms (/home/hdpapp/mdm_intvl_vee/parms) 
+	(these two files should already be there in prod)(to be copied from prod)
+1. audit_run_dt.txt 
+2. audit_dates_yyyy-mm-dd.txt 
+
+--------------------------------
+####DDLs (/home/hdpapp/mdm_intvl_vee/scripts/hive_ddl) 
+1. /home/hdpapp/mdm_intvl_vee/scripts/hive_ddl/create_table_xfrm_audit_tgt.hql
+
+--------------------------------
+####DMLs (/home/hdpapp/mdm_intvl_vee/scripts/hive_dml)
+1. /home/hdpapp/mdm_intvl_vee/scripts/hive_dml/insert_xfrm_audit_tgt_usage_dt.hql
+2. /home/hdpapp/mdm_intvl_vee/scripts/hive_dml/insert_xfrm_audit_tgt_uom.hql
+3. /home/hdpapp/mdm_intvl_vee/scripts/hive_dml/insert_xfrm_audit_tgt_data_quality.hql
+4. /home/hdpapp/mdm_intvl_vee/scripts/hive_dml/insert_xfrm_audit_tgt_zero_usage.hql
+5. /home/hdpapp/mdm_intvl_vee/scripts/hive_dml/insert_xfrm_audit_tgt_interval_count.hql
+
+---------------------------------
+####Datacopy
+
+
+aws s3 cp --recursive s3://aep-dl-consume-vee-prod/util/intervals/reading_ivl_vee_tx/aep_opco=tx/aep_usage_dt=2022-12-10/ s3://aep-dl-consume-vee-qa/util/intervals/reading_ivl_vee_tx/aep_opco=tx/aep_usage_dt=2022-12-10/
+
+
+============================
+--we have already copied data for tx, rest 5 opcos' data are follows:-
+
+aws s3 cp --recursive s3://aep-dl-consume-vee-prod/util/intervals/reading_ivl_vee_oh/aep_opco=oh/aep_usage_dt=2022-12-10/ s3://aep-dl-consume-vee-qa/util/intervals/reading_ivl_vee_oh/aep_opco=oh/aep_usage_dt=2022-12-10/
+
+aws s3 cp --recursive s3://aep-dl-consume-vee-prod/util/intervals/reading_ivl_vee_pso/aep_opco=pso/aep_usage_dt=2022-12-10/ s3://aep-dl-consume-vee-qa/util/intervals/reading_ivl_vee_pso/aep_opco=pso/aep_usage_dt=2022-12-10/
+
+aws s3 cp --recursive s3://aep-dl-consume-vee-prod/util/intervals/reading_ivl_vee_swp/aep_opco=swp/aep_usage_dt=2022-12-10/ s3://aep-dl-consume-vee-qa/util/intervals/reading_ivl_vee_swp/aep_opco=swp/aep_usage_dt=2022-12-10/
+
+aws s3 cp --recursive s3://aep-dl-consume-vee-prod/util/intervals/reading_ivl_vee_ap/aep_opco=ap/aep_usage_dt=2022-12-10/ s3://aep-dl-consume-vee-qa/util/intervals/reading_ivl_vee_ap/aep_opco=ap/aep_usage_dt=2022-12-10/
+
+aws s3 cp --recursive s3://aep-dl-consume-vee-prod/util/intervals/reading_ivl_vee_im/aep_opco=im/aep_usage_dt=2022-12-10/ s3://aep-dl-consume-vee-qa/util/intervals/reading_ivl_vee_im/aep_opco=im/aep_usage_dt=2022-12-10/
+---------------------------------
+
+#### Need to do msck, if required

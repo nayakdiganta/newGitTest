@@ -1,0 +1,2 @@
+aep_opco,aep_usage_dt,src_regular_cnt,tgt_regular_cnt,diff_reg_intvl_cnt,src_estimate,tgt_estimate,diff_est_intvl_cnt,src_total_cnt,tgt_total_cnt,diff_tot_intvl_cnt,src_reg_cnt_per,src_est_cnt_per,tgt_reg_cnt_per,tgt_est_cnt_per,run_dt,aggr_type,issue_type
+tx,2023-01-29,102053270,102053270,0,7451033,7442477,8556,109504303,109495747,8556,93.19567104134711,6.804328958652885,93.20295335306493,6.797046646935064,2023-01-31,DATA_QUALITY,SOURCE NON REGULAR INTEVAL COUNT > 3%

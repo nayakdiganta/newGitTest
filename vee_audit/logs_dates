@@ -1,0 +1,172 @@
+ACCOUNT_ID=889415020100
+2022-12-30 17:58:15 ========== VEE AUDIT audit_gen SCRIPT BEGIN ==========
+Start Audit Date generation Fri Dec 30 17:58:15 UTC 2022
+AUDIT_RUN_DT=2022-12-19
+START_DATE=2022-11-29
+Generating data file
+2022-12-30 17:58:15 aws s3 rm --recursive s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_dates/
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_dates/20221230_175053_00133_rbpqz_014a7b69-912a-4a95-aad0-93251b3f0c4d
+2022-12-30 17:58:16 Clean-Up ctas location s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_dates
+start create_athena_objects
+/home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_gen_dts-_export_athena.tmp
+-rw-r--r-- 1 s362807 users 52 Dec 30 17:58 /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_gen_dts-_export_athena.tmp
+2022-12-30 17:58:16 submit file /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_gen_dts-_export_athena.tmp to Athena
+
+2022-12-30 17:58:16 ====================================================================
+
+DROP TABLE IF EXISTS stg_vee.xfrm_ctas_audit_dates;
+
+2022-12-30 17:58:16 ====================================================================
+
+2022-12-30 17:58:16 aws athena start-query-execution --query-string file:///home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_gen_dts-_export_athena.tmp --result-configuration OutputLocation=s3://aep-datalake-user-data-dev/athena_result_sets/lambda_partitions_update/ --work-group HdpDeveloper --output text
+2022-12-30 17:58:17 Athena Execution id=009e0917-0241-4fc7-bfa3-580f235f2352
+
+
+
+2022-12-30 17:58:17 line_cnt=1
+2022-12-30 17:58:18 Query 009e0917-0241-4fc7-bfa3-580f235f2352 status => RUNNING ,
+2022-12-30 17:58:18 still running, write id 009e0917-0241-4fc7-bfa3-580f235f2352 to run file => /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_gen_dts-_export_athena.tmp.execution_id.txt.running
+2022-12-30 17:58:23 line_cnt=1
+2022-12-30 17:58:24 Query 009e0917-0241-4fc7-bfa3-580f235f2352 status => SUCCEEDED ,
+2022-12-30 17:58:29 line_cnt=0
+2022-12-30 17:58:29 ALL RECORDS PROCESSED
+2022-12-30 17:58:29 ====================================================================
+
+
+
+start create_athena_objects
+/home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_gen_dts-_export_athena.tmp
+-rw-r--r-- 1 s362807 users 513 Dec 30 17:58 /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_gen_dts-_export_athena.tmp
+2022-12-30 17:58:30 submit file /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_gen_dts-_export_athena.tmp to Athena
+
+2022-12-30 17:58:30 ====================================================================
+
+CREATE TABLE stg_vee.xfrm_ctas_audit_dates
+WITH (
+      external_location = 's3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_dates/',
+      format = 'TEXTFILE',
+      field_delimiter = ',',
+	  write_compression = 'NONE'
+      )
+AS
+select array_join(array_agg( concat('''', usage_date ,'''')),',') AEP_USAGE_DT 
+from
+(
+	select distinct usage_date 
+	from stg_vee.stg_measurement_audit 
+	where aep_usage_type = 'interval' 
+	--	and usage_date > '${START_DATE}' 
+	and usage_date < '2022-12-19'
+) A ;
+2022-12-30 17:58:30 ====================================================================
+
+2022-12-30 17:58:30 aws athena start-query-execution --query-string file:///home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_gen_dts-_export_athena.tmp --result-configuration OutputLocation=s3://aep-datalake-user-data-dev/athena_result_sets/lambda_partitions_update/ --work-group HdpDeveloper --output text
+2022-12-30 17:58:31 Athena Execution id=50b044f7-f091-4ad3-a1d3-70f3b5d71f3c
+
+
+
+2022-12-30 17:58:31 line_cnt=1
+2022-12-30 17:58:32 Query 50b044f7-f091-4ad3-a1d3-70f3b5d71f3c status => RUNNING ,
+2022-12-30 17:58:32 still running, write id 50b044f7-f091-4ad3-a1d3-70f3b5d71f3c to run file => /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_gen_dts-_export_athena.tmp.execution_id.txt.running
+2022-12-30 17:58:37 line_cnt=1
+2022-12-30 17:58:41 Query 50b044f7-f091-4ad3-a1d3-70f3b5d71f3c status => SUCCEEDED ,
+2022-12-30 17:58:46 line_cnt=0
+2022-12-30 17:58:46 ALL RECORDS PROCESSED
+2022-12-30 17:58:46 ====================================================================
+
+
+
+Completed 182 Bytes/182 Bytes (1.8 KiB/s) with 1 file(s) remainingdownload: s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_ctas_audit_dates/20221230_175831_00024_g2crz_62511f69-ca10-4039-ba36-662645fc091b to data_from_s3/20221230_175831_00024_g2crz_62511f69-ca10-4039-ba36-662645fc091b
+cat dt.txt 
+'2022-12-09','2022-12-06','2022-12-07','2022-12-16','2022-12-13','2022-12-17','2022-12-10','2022-12-05','2022-12-14','2022-12-12','2022-12-15','2022-12-08','2022-12-11','2022-12-18'
+2022-12-30 17:58:47 drop_create stg_vee.xfrm_ctas_audit_dates table succeeded..
+2022-12-30 17:58:47 /home/hdpapp/mdm_intvl_vee/parms/audit_dates_2022-12-19.txt file creation succeeded..
+INPUT_DATES:
+'2022-12-09','2022-12-06','2022-12-07','2022-12-16','2022-12-13','2022-12-17','2022-12-10','2022-12-05','2022-12-14','2022-12-12','2022-12-15','2022-12-08','2022-12-11','2022-12-18'
+Creating current view audit_reading_ivl_vee_cur_vw
+
+	create or replace view stg_vee.audit_reading_ivl_vee_cur_vw as 
+	Select   
+	aep_opco, 
+	aep_usage_dt,
+	name_register,
+	src_intvl_cnt,
+	tgt_intvl_cnt,
+	src_intvl_usg,
+	tgt_intvl_usg,
+	src_unq_meter_count,
+	tgt_unq_meter_count,
+	diff_intvl_cnt,
+	per_diff_intvl_cnt,
+	diff_unq_meter_count,
+	per_diff_unq_mtr,
+	diff_intvl_usg,
+	per_diff_intvl_usg,
+	run_dt,
+	aggr_type,
+	hdp_insert_dttm
+	from 
+	usage_vee.audit_reading_ivl_vee
+	where 
+	run_dt = '2022-12-19'
+	order by 
+	aggr_type,
+	aep_opco, 
+	aep_usage_dt,
+	name_register
+	;
+start create_athena_objects
+/home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_gen_dts-_export_athena.tmp
+-rw-r--r-- 1 s362807 users 522 Dec 30 17:58 /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_gen_dts-_export_athena.tmp
+2022-12-30 17:58:47 submit file /home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_gen_dts-_export_athena.tmp to Athena
+
+2022-12-30 17:58:47 ====================================================================
+
+create or replace view stg_vee.audit_reading_ivl_vee_cur_vw as 
+	Select   
+	aep_opco, 
+	aep_usage_dt,
+	name_register,
+	src_intvl_cnt,
+	tgt_intvl_cnt,
+	src_intvl_usg,
+	tgt_intvl_usg,
+	src_unq_meter_count,
+	tgt_unq_meter_count,
+	diff_intvl_cnt,
+	per_diff_intvl_cnt,
+	diff_unq_meter_count,
+	per_diff_unq_mtr,
+	diff_intvl_usg,
+	per_diff_intvl_usg,
+	run_dt,
+	aggr_type ,
+	hdp_insert_dttm
+	from 
+	usage_vee.audit_reading_ivl_vee
+	where 
+	run_dt = '2022-12-19'
+	order by 
+	aggr_type,
+	aep_opco, 
+	aep_usage_dt,
+	name_register
+	;
+
+2022-12-30 17:58:47 ====================================================================
+
+2022-12-30 17:58:47 aws athena start-query-execution --query-string file:///home/hdpapp/mdm_intvl_vee/logs/xfrm_msrmt_audit_gen_dts-_export_athena.tmp --result-configuration OutputLocation=s3://aep-datalake-user-data-dev/athena_result_sets/lambda_partitions_update/ --work-group HdpDeveloper --output text
+2022-12-30 17:58:48 Athena Execution id=9d60bd32-8a2f-4b54-a90c-e2d25811c282
+
+
+
+2022-12-30 17:58:48 line_cnt=1
+2022-12-30 17:58:49 Query 9d60bd32-8a2f-4b54-a90c-e2d25811c282 status => SUCCEEDED ,
+2022-12-30 17:58:55 line_cnt=0
+2022-12-30 17:58:55 ALL RECORDS PROCESSED
+2022-12-30 17:58:55 ====================================================================
+
+
+
+stg_vee.audit_reading_ivl_vee_cur_vw view creation succeeded..
+2022-12-30 17:58:55 stg_vee.audit_reading_ivl_vee_cur_vw view creation succeeded..

@@ -1,0 +1,383 @@
+vee_audit
+============================
+##tables used in hql
+-------------------
+1. stg_vee.xfrm_audit_reading_ivl_vee_tgt 
+	(s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_tgt)
+2. stg_vee.data_qlty_reprocess 
+	(s3://aep-datalake-work-dev/transform/util/intervals/dq_controls/vee/dq_reprocess/)
+3. usage_vee.reading_ivl_vee_${VAR_OPCO}
+	(s3://aep-dl-consume-vee-prod/util/intervals/reading_ivl_vee_oh)
+===============================
+usage_vee.audit_reading_ivl_vee (consume table)
+
+s3://aep-datalake-work-prod/transform/util/intervals/dq_controls/vee/dq_reprocess
+==============================
+/hdpapp/mdm_intvl_vee/parms/audit_run_dt.txt in dev env
+========================
+ aws s3 cp --recursive s3://aep-datalake-work-prod/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_tgt/run_dt=2022-12-10/aep_opco=oh/aggr_type=USAGE_DATE/ s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_tgt/run_dt=2022-12-10/aep_opco=oh/aggr_type=USAGE_DATE/
+---cpoy DATABASE
+======================
+aws s3 cp --recursive s3://aep-datalake-work-prod/transform/util/intervals/dq_controls/vee/dq_reprocess/ s3://aep-datalake-work-dev/transform/util/intervals/dq_controls/vee/dq_reprocess/ 
+
+aws s3 cp --recursive s3://aep-dl-consume-vee-prod/util/intervals/reading_ivl_vee_oh/aep_opco=oh/aep_usage_dt=2022-12-01/ s3://aep-dl-consume-vee-dev/util/intervals/reading_ivl_vee_oh/aep_opco=oh/aep_usage_dt=2022-12-01/
+
+
+aws s3 cp --recursive s3://aep-dl-consume-vee-prod/util/intervals/reading_ivl_vee_oh/aep_opco=oh/aep_usage_dt=2023-01-09/ s3://aep-dl-consume-vee-dev/util/intervals/reading_ivl_vee_oh/aep_opco=oh/aep_usage_dt=2023-01-09/
+
+aws s3  cp --recursive s3://aep-dl-consume-vee-prod/util/intervals/reading_ivl_vee_oh/aep_opco=oh/ s3://aep-dl-consume-vee-dev/util/intervals/reading_ivl_vee_oh/aep_opco=oh/ --exclude "*" --include "aep_usage_dt=2022-11-2*"
+======================
+aws s3 cp --recursive s3://aep-dl-consume-vee-prod/util/intervals/reading_ivl_vee_tx/aep_opco=tx/aep_usage_dt=2022-12-10/ s3://aep-dl-consume-vee-dev/util/intervals/reading_ivl_vee_tx/aep_opco=tx/aep_usage_dt=2022-12-10/
+========================
+
+===================
+s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_tgt_oh/run_dt=2021-12-08/aep_opco=oh/aggr_type=USAGE_DATE/
+
+=====================
+selct data
+select * from stg_vee.xfrm_audit_reading_ivl_vee_tgt --where aep_opco='oh' and aggr_type='USAGE_DATE'
+where run_dt='2022-12-12' and aep_opco='oh' and aggr_type='USAGE_DATE' order by aep_usage_dt --and aep_usage_dt='2022-12-01'
+
+msck repair table stg_vee.xfrm_audit_reading_ivl_vee_tgt
+
+select * from stg_vee.xfrm_audit_reading_ivl_vee_tgt_oh where aggr_type='USAGE_DATE' order by aep_usage_dt
+where run_dt='2022-12-10' and aep_opco='oh' and aggr_type='USAGE_DATE' and aep_usage_dt='2022-12-01'
+===========================================
+Test qry
+select count(*) from stg_vee.xfrm_audit_reading_ivl_vee_tgt_tx where run_dt='2022-12-19' and aep_opco='tx' and aggr_type='INTERVAL_COUNT' and aep_usage_dt='2022-12-10' 
+
+/home/hdpapp/mdm_intvl_vee/scripts/xfrm_msrmt_audit_tgt_athena.sh tx
+
+## in part1 (3 partitions)
+----------
+USAGE_DATE
+UOM
+DATA_QUALITY
+
+## in part2 (2 partitions)
+------------
+ZERO USAGE
+INTERVAL_COUNT
+
+===========================
+1. 6 new tables to be created in stg_vee.
+	1. stg_vee.xfrm_audit_reading_ivl_vee_tgt_oh(s3://aep-datalake-work-dev/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_tgt)
+
+
+
+===========================
+
+
+
+
+==============ORC existing format=================
+CREATE EXTERNAL TABLE stg_vee.xfrm_audit_reading_ivl_vee_tgt_${VAR_OPCO}(
+	aep_usage_dt string, 
+	aep_usage_type string, 
+	name_register string, 
+	aep_data_quality_cd string, 
+	aep_no_of_intvl string, 
+	intvl_cnt bigint, 
+	intvl_usg double, 
+	unq_meter_count bigint, 
+	hdp_insert_dttm string)
+PARTITIONED BY ( 
+  run_dt string, 
+  aep_opco string, 
+  aggr_type string)
+ROW FORMAT SERDE 
+  'org.apache.hadoop.hive.ql.io.orc.OrcSerde' 
+STORED AS INPUTFORMAT 
+  'org.apache.hadoop.hive.ql.io.orc.OrcInputFormat' 
+OUTPUTFORMAT 
+  'org.apache.hadoop.hive.ql.io.orc.OrcOutputFormat'
+LOCATION
+  's3://aep-datalake-work-${env}/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_tgt_${VAR_OPCO}'
+TBLPROPERTIES (
+  'bucketing_version'='2', 
+  'orc.bloom.filter.columns'='aggr_type', 
+  'orc.compress'='SNAPPY', 
+  'orc.create.index'='true', 
+  'orc.row.index.stride'='1000', 
+  'transient_lastDdlTime'='1657839842')
+
+===========================
+xfrm_audit_reading_ivl_vee_tgt_oh (one time creation and 5 times insertion)
+==========Parquet format=============
+CREATE EXTERNAL TABLE stg_vee.xfrm_audit_reading_ivl_vee_tgt_${VAR_OPCO}(
+	aep_usage_dt string, 
+	aep_usage_type string, 
+	name_register string, 
+	aep_data_quality_cd string, 
+	aep_no_of_intvl string, 
+	intvl_cnt bigint, 
+	intvl_usg double, 
+	unq_meter_count bigint, 
+	hdp_insert_dttm string)
+PARTITIONED BY ( 
+  run_dt string, 
+  aep_opco string, 
+  aggr_type string)
+STORED AS PARQUET
+LOCATION
+  's3://aep-datalake-work-${env}/raw/intervals/vee/audit/xfrm_audit_reading_ivl_vee_tgt_${VAR_OPCO}'
+TBLPROPERTIES (
+  'bucketing_version'='2',
+  'parquet.bloom.filter.columns'='aggr_type',
+  'parquet.bloom.filter.fpp'='0.05',
+  'parquet.compression'='SNAPPY',
+  'parquet.create.index'='true' )
+  
+ ========================================= 
+
+ ###########src details#############################
+ stg_vee.stg_measurement_audit
+	stg_vee.xfrm_ctas_audit_intvl_cnt_src 
+		xfrm_ctas_audit_intvl_96_act_aggr
+		
+		xfrm_ctas_audit_intvl_96_est_aggr (from both above)
+		
+		xfrm_ctas_audit_intvl_not_96_aggr
+		
+			xfrm_ctas_audit_intvl_aggr
+			
+Data copy (stg_vee.measurement_audit) for HDP1680
+aws s3 cp --recursive  s3://aep-datalake-work-prod/raw/intervals/vee/mdm/msrmt_audit/ s3://aep-datalake-work-dev/raw/intervals/vee/mdm/msrmt_audit/
+OR
+ aws s3 cp --recursive  s3://aep-datalake-work-prod/raw/intervals/vee/mdm/msrmt_audit/P1/ s3://aep-datalake-work-dev/raw/intervals/vee/mdm/msrmt_audit/P1/
+ 
+ aws s3 cp --recursive  s3://aep-datalake-work-prod/raw/intervals/vee/mdm/msrmt_audit/P2/ s3://aep-datalake-work-dev/raw/intervals/vee/mdm/msrmt_audit/P2/
+  
+ aws s3 cp --recursive  s3://aep-datalake-work-prod/raw/intervals/vee/mdm/msrmt_audit/P3/ s3://aep-datalake-work-dev/raw/intervals/vee/mdm/msrmt_audit/P3/
+   
+ aws s3 cp --recursive  s3://aep-datalake-work-prod/raw/intervals/vee/mdm/msrmt_audit/P4/ s3://aep-datalake-work-dev/raw/intervals/vee/mdm/msrmt_audit/P4/
+	
+ aws s3 cp --recursive  s3://aep-datalake-work-prod/raw/intervals/vee/mdm/msrmt_audit/P5/ s3://aep-datalake-work-dev/raw/intervals/vee/mdm/msrmt_audit/P5/
+	 
+ aws s3 cp --recursive  s3://aep-datalake-work-prod/raw/intervals/vee/mdm/msrmt_audit/P6/ s3://aep-datalake-work-dev/raw/intervals/vee/mdm/msrmt_audit/P6/
+	  
+ aws s3 cp --recursive  s3://aep-datalake-work-prod/raw/intervals/vee/mdm/msrmt_audit/P7/ s3://aep-datalake-work-dev/raw/intervals/vee/mdm/msrmt_audit/P7/
+	   
+ aws s3 cp --recursive  s3://aep-datalake-work-prod/raw/intervals/vee/mdm/msrmt_audit/P8/ s3://aep-datalake-work-dev/raw/intervals/vee/mdm/msrmt_audit/P8/
+================================
+
+
+CREATE SYNONYM ANSERSDS.METER_PREMISE_VW for UTLUSER.METER_PREMISE_VW@UTLDB01D
+
+====================
+CREATE EXTERNAL TABLE usage_vee.audit_reading_ivl_vee(
+	aep_usage_dt string,
+	aep_usage_type string,
+	name_register string,
+	aep_data_quality_cd string,
+	aep_no_of_intvl string,
+	src_intvl_cnt bigint,
+	tgt_intvl_cnt bigint,
+	diff_intvl_cnt bigint,
+	per_diff_intvl_cnt decimal(7,4),
+	src_intvl_usg double,
+	tgt_intvl_usg double,
+	diff_intvl_usg decimal(9,2),
+	per_diff_intvl_usg decimal(7,4),
+	src_unq_meter_count bigint,
+	tgt_unq_meter_count bigint,
+	diff_unq_meter_count bigint,
+	per_diff_unq_mtr decimal(7,4),
+	hdp_insert_dttm string)
+PARTITIONED BY ( 
+	  run_dt string, 
+	  aep_opco string, 
+	  aggr_type string)
+STORED AS PARQUET
+LOCATION
+	's3://aep-datalake-consume-${aws_env}/util/intervals/audit_reading_ivl_vee'
+TBLPROPERTIES (
+	  'bucketing_version'='2',
+	  'parquet.bloom.filter.columns'='aggr_type',
+	  'parquet.bloom.filter.fpp'='0.05',
+	  'parquet.compression'='SNAPPY',
+	  'parquet.create.index'='true' );
+  
+=================================  
+
+audit_email_info_file="${MDMVEE_PARMS}/audit_email_text_${AWS_ENV}.txt"
+email_group=`grep "AUDIT_ALERT_MISMATCH" ${audit_email_info_file}|cut -d "|" -f5`
+=======================================================  
+  
+  aws s3 cp --recursive s3\://aep-dl-consume-vee-prod/util/intervals/reading_ivl_vee_im/aep_opco=im/aep_usage_dt=2022-12-30/ s3\://aep-dl-consume-vee-qa/util/intervals/reading_ivl_vee_im/aep_opco=im/aep_usage_dt=2022-12-30/
+  
+  aws s3 cp --recursive s3\://aep-dl-consume-vee-prod/util/intervals/reading_ivl_vee_oh/aep_opco=oh/aep_usage_dt=2022-12-30/ s3\://aep-dl-consume-vee-qa/util/intervals/reading_ivl_vee_oh/aep_opco=oh/aep_usage_dt=2022-12-30/
+	
+  aws s3 cp --recursive s3\://aep-dl-consume-vee-prod/util/intervals/reading_ivl_vee_pso/aep_opco=pso/aep_usage_dt=2022-12-30/ s3\://aep-dl-consume-vee-qa/util/intervals/reading_ivl_vee_pso/aep_opco=pso/aep_usage_dt=2022-12-30/
+	  
+  aws s3 cp --recursive s3\://aep-dl-consume-vee-prod/util/intervals/reading_ivl_vee_tx/aep_opco=tx/aep_usage_dt=2022-12-30/ s3\://aep-dl-consume-vee-qa/util/intervals/reading_ivl_vee_tx/aep_opco=tx/aep_usage_dt=2022-12-30/
+  
+  
+  
+  
+  aws s3 cp --recursive s3\://aep-dl-consume-nonvee-prod/util/intervals/reading_ivl_nonvee_pso/aep_opco=pso/ s3\://aep-dl-consume-nonvee-qa/util/intervals/reading_ivl_nonvee_pso/aep_opco=pso/ --exclude "*" --include "aep_usage_dt=2023*"
+  
+  
+  aws s3 cp --recursive s3\://aep-datalake-work-dev/raw/intervals/vee/mdm/msrmt_audit/ s3\://aep-datalake-work-qa/raw/intervals/vee/mdm/msrmt_audit/
+  
+  aws s3 rm --recursive s3\://aep-datalake-work-qa/raw/intervals/vee/mdm/msrmt_audit/P1/
+  
+  
+AUDIT_RUN_DT=2023-01-30
+START_DATE=2023-01-10
+
+audit_dates_2023-01-30.txt
+=======================
+
+
+================
+aws s3 rm --recursive s3://aep-dl-consume-vee-qa/util/intervals/reading_ivl_vee_tx/aep_opco=tx/ --exclude "*" --include "aep_usage_dt=2023-01-1*"
+
+
+aws s3 cp --recursive s3\://aep-dl-consume-vee-dev/util/intervals/reading_ivl_vee_tx/aep_opco=tx/  s3\://aep-dl-consume-vee-qa/util/intervals/reading_ivl_vee_tx/aep_opco=tx/ --exclude "*"  --include "aep_usage_dt=2023-01-1*"
+
+aws s3 cp --recursive s3\://aep-dl-consume-vee-dev/util/intervals/reading_ivl_vee_tx/aep_opco=tx/  s3\://aep-dl-consume-vee-qa/util/intervals/reading_ivl_vee_tx/aep_opco=tx/ --exclude "*"  --include "aep_usage_dt=2023-01-2*"
+
+aws s3 cp --recursive s3://aep-dl-consume-vee-prod/util/intervals/reading_ivl_vee_tx/aep_opco=tx/aep_usage_dt=2023-01-10/ s3://aep-dl-consume-vee-qa/util/intervals/reading_ivl_vee_tx/aep_opco=tx/aep_usage_dt=2023-01-10/
+
+aws s3 cp --recursive s3://aep-dl-consume-vee-prod/util/intervals/reading_ivl_vee_tx/aep_opco=tx/aep_usage_dt=2023-01-11/ s3://aep-dl-consume-vee-qa/util/intervals/reading_ivl_vee_tx/aep_opco=tx/aep_usage_dt=2023-01-11/
+
+aws s3 cp --recursive s3://aep-dl-consume-vee-prod/util/intervals/reading_ivl_vee_tx/aep_opco=tx/aep_usage_dt=2023-01-12/ s3://aep-dl-consume-vee-qa/util/intervals/reading_ivl_vee_tx/aep_opco=tx/aep_usage_dt=2023-01-12/
+
+
+aws s3 cp --recursive s3://aep-dl-consume-vee-prod/util/intervals/reading_ivl_vee_tx/aep_opco=tx/aep_usage_dt=2023-01-13/ s3://aep-dl-consume-vee-qa/util/intervals/reading_ivl_vee_tx/aep_opco=tx/aep_usage_dt=2023-01-13/
+
+============================================
+
+AUDIT_RUN_DT=2023-01-31
+START_DATE=2023-01-11
+
+audit_dates_2023-01-30.txt
+=======================
+src
+select count(*) from stg_vee.stg_measurement_audit  
+	dev  --> 210414679
+	prod --> 210414679
+
+	
+select count(*) from  stg_vee.xfrm_audit_reading_ivl_vee_src
+	dev  --> 5141
+	prod --> 5141
+	
+tgt
+select count(*) from usage_vee.reading_ivl_vee_tx  where aep_usage_dt='2023-01-29'
+
+	dev  --> 128375866
+	prod --> 128375866
+
+
+select count(*) from stg_vee.xfrm_audit_reading_ivl_vee_tgt_tx
+	dev  --> 1823
+select count(*) from  stg_vee.xfrm_audit_reading_ivl_vee_tgt where run_dt='2023-01-31' and aep_opco='tx'
+	prod --> 1823
+
+
+audit_reading
+select count(*) from usage_vee.audit_reading_ivl_vee where run_dt='2023-01-31' and aep_opco='tx'
+	dev  --> 555
+	prod --> 555
+	
+========================
+change files
+-----------------
+scripts/check_audit_output_athena.sh
+hive_ddl/create_ctas_check_audit_output.hql
+hive_ddl/create_ctas_check_audit_output_qlty.hql
+hive_dml/insert_consume_audit_reading_ivl_vee_interval.hql
+hive_dml/insert_consume_audit_reading_ivl_vee_non_interval.hql
+/parms/audit_alert_percent.txt
+/parms/audit_email_text_qa.txt
+
+Hi Munushree,
+
+I have pushed some changes into  git branch ‘vee_audit_migration’ under ‘AEP/mdm_intvl_vee’ in git.
+
+Please take the scripts into qa environment with following commands:-
+
+1. cp parms/audit_alert_percent.txt /home/hdpapp/mdm_intvl_vee/parms/
+2. cp parms/audit_email_text_qa.txt /home/hdpapp/mdm_intvl_vee/parms/
+
+3. cp scripts/check_audit_output_athena.sh /home/hdpapp/mdm_intvl_vee/scripts/
+
+4. cp scripts/hive_ddl/create_ctas_check_audit_output.hql /home/hdpapp/mdm_intvl_vee/scripts/hive_ddl/
+5. cp scripts/hive_ddl/create_ctas_check_audit_output_qlty.hql /home/hdpapp/mdm_intvl_vee/scripts/hive_ddl/
+
+6. cp scripts/hive_dml/insert_consume_audit_reading_ivl_vee_interval.hql /home/hdpapp/mdm_intvl_vee/scripts/hive_dml/
+7. cp scripts/hive_dml/insert_consume_audit_reading_ivl_vee_non_interval.hql /home/hdpapp/mdm_intvl_vee/scripts/hive_dml/
+
+8. And execute below two commands in qa environment(to update audit_run_dt.txt file):-
+echo "AUDIT_RUN_DT=2023-01-31" > /aep/home/hdpapp/mdm_intvl_vee/parms/audit_run_dt.txt
+echo "START_DATE=2023-01-11" >> /aep/home/hdpapp/mdm_intvl_vee/parms/audit_run_dt.txt
+
+
+/aep/home/hdpapp/mdm_intvl_vee/parms/audit_alert_percent.txt
+/aep/home/hdpapp/mdm_intvl_vee/parms/audit_email_text_qa.txt
+
+/aep/home/hdpapp/mdm_intvl_vee/scripts/check_audit_output_athena.sh
+
+/aep/home/hdpapp/mdm_intvl_vee/scripts/hive_ddl/create_ctas_check_audit_output.hql
+/aep/home/hdpapp/mdm_intvl_vee/scripts/hive_ddl/create_ctas_check_audit_output_qlty.hql
+
+/aep/home/hdpapp/mdm_intvl_vee/scripts/hive_dml/insert_consume_audit_reading_ivl_vee_interval.hql
+/aep/home/hdpapp/mdm_intvl_vee/scripts/hive_dml/insert_consume_audit_reading_ivl_vee_non_interval.hql
+
+
+execute below two commands in qa environment(to update audit_run_dt.txt file):-
+echo "AUDIT_RUN_DT=2023-01-31" > /aep/home/hdpapp/mdm_intvl_vee/parms/audit_run_dt.txt
+echo "START_DATE=2023-01-11" >> /aep/home/hdpapp/mdm_intvl_vee/parms/audit_run_dt.txt
+================================
+
+
+--drop table if exists usage_vee.audit_reading_ivl_vee_parquet
+CREATE EXTERNAL TABLE usage_vee.audit_reading_ivl_vee_parquet(
+ aep_usage_dt string,
+ aep_usage_type string,
+ name_register string,
+ aep_data_quality_cd string,
+ aep_no_of_intvl string,
+ src_intvl_cnt bigint,
+ tgt_intvl_cnt bigint,
+ diff_intvl_cnt bigint,
+ per_diff_intvl_cnt decimal(7,4),
+ src_intvl_usg double,
+ tgt_intvl_usg double,
+ diff_intvl_usg decimal(9,2),
+ per_diff_intvl_usg decimal(7,4),
+ src_unq_meter_count bigint,
+ tgt_unq_meter_count bigint,
+ diff_unq_meter_count bigint,
+ per_diff_unq_mtr decimal(7,4),
+ hdp_insert_dttm string)
+PARTITIONED BY ( 
+   run_dt string, 
+   aep_opco string, 
+   aggr_type string)
+STORED AS PARQUET
+LOCATION
+ 's3://aep-datalake-consume-${aws_env}/util/intervals/audit_reading_ivl_vee_parquet'
+TBLPROPERTIES (
+   'bucketing_version'='2',
+   'parquet.bloom.filter.columns'='aggr_type',
+   'parquet.bloom.filter.fpp'='0.05',
+   'parquet.compression'='SNAPPY',
+   'parquet.create.index'='true' );
+
+===================
+for converting usage_vee.audit_reading_ivl_vee [orc to parquet]
+files to be modified (tablename to altered)
+   for audit_reading_ivl_vee_athena.sh
+     clean_external_location_dir()
+	 $MDMVEE_HIVE_DML/insert_consume_audit_reading_ivl_vee_non_interval.hql
+	 $MDMVEE_HIVE_DML/insert_consume_audit_reading_ivl_vee_interval.hql 
+	 
+   for check_audit_output_athena.sh 
+     (alter table drop partition piece)
+	 $MDMVEE_HIVE_DDL/create_ctas_check_audit_output.hql
+	 $MDMVEE_HIVE_DDL/create_ctas_min_run_dt_audit_reading_ivl_vee.hql	 
+	 $MDMVEE_HIVE_DDL/create_ctas_check_audit_output_qlty.hql
+==================

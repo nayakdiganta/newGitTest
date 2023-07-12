@@ -1,0 +1,52 @@
+/* ----------------- HDP1681 ----------------- */ 
+
+insert_job: HDP1681   job_type: BOX 
+owner: awsautobat
+permission: 
+date_conditions: 1
+days_of_week: all
+start_times: "05:00"
+condition: success(HDP1680) AND success(HDP1600) AND success(HDP1610) AND success(HDP1611) AND success(HDP1612) AND success(HDP1613) AND success(HDP1615) AND success(HDP1616) AND success(HDP2610) AND success(HDP2611) AND success(HDP2612) AND success(HDP2613) AND success(HDP2615) AND success(HDP1682)
+description: "Ingest Audit MSRMT Data"
+alarm_if_fail: 1
+alarm_if_terminated: 1
+group: DFLTGRP
+
+
+
+/* ----------------- HDP1681C_LOAD_VEE_AUDIT_READING_IVL ----------------- */ 
+
+ insert_job: HDP1681C_LOAD_VEE_AUDIT_READING_IVL   job_type: CMD 
+ box_name: HDP1681
+ command: /home/hdpapp/common/scripts/submit_emr_script_step.sh persistent_cluster /home/hdpapp/mdm_intvl_vee/scripts/audit_reading_ivl_vee.sh
+ machine: AWSHDPSVR
+ owner: awsautobat
+ permission: 
+ date_conditions: 0
+ description: "Ingest Audit MSRMT Data"
+ std_out_file: "$MDMVEE_ASYS_LOGS/$AUTO_JOB_NAME.OUT"
+ std_err_file: "$MDMVEE_ASYS_LOGS/$AUTO_JOB_NAME.ERR"
+ alarm_if_fail: 1
+ profile: "/home/hdpapp/mdm_intvl_vee/scripts/.mdm_intvl_vee_env"
+ alarm_if_terminated: 1
+ group: DFLTGRP
+
+
+
+/* ----------------- HDP1681C_VEE_AUDIT_CHECK_OUTPUT ----------------- */ 
+
+ insert_job: HDP1681C_VEE_AUDIT_CHECK_OUTPUT   job_type: CMD 
+ box_name: HDP1681
+ command: /home/hdpapp/common/scripts/submit_emr_script_step.sh persistent_cluster /home/hdpapp/mdm_intvl_vee/scripts/check_audit_output.sh
+ machine: AWSHDPSVR
+ owner: awsautobat
+ permission: 
+ date_conditions: 0
+ condition: success(HDP1681C_LOAD_VEE_AUDIT_READING_IVL)
+ description: "Ingest Audit MSRMT Data"
+ std_out_file: "$MDMVEE_ASYS_LOGS/$AUTO_JOB_NAME.OUT"
+ std_err_file: "$MDMVEE_ASYS_LOGS/$AUTO_JOB_NAME.ERR"
+ alarm_if_fail: 1
+ profile: "/home/hdpapp/mdm_intvl_vee/scripts/.mdm_intvl_vee_env"
+ alarm_if_terminated: 1
+ group: DFLTGRP

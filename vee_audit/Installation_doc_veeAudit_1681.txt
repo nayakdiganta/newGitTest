@@ -1,0 +1,58 @@
+Deployment Document For vee_audit load_audit_reading and check_output (box 1681)
+----------------------------------------------------------
+####DDLs (to be run one time) 
+
+1. /home/hdpapp/mdm_intvl_vee/scripts/usage_vee_audit_reading_ivl_vee_parquet_create_table_ddl_script.sh
+	(to be run 1 time with env) (create the table which will be used within jobs)
+	ex: sh usage_vee_audit_reading_ivl_vee_parquet_create_table_ddl_script.sh prod
+	
+-------------------------------	
+
+####Autosys: (jil) (/home/hdpapp/mdm_intvl_vee/scripts/autosys/)
+1. HDP1681 Box(one .jil file for 2 jobs)
+	1. HDP1681.jil
+
+-------------------------------	
+
+####Scripts (/home/hdpapp/mdm_intvl_vee/scripts)
+1. /home/hdpapp/mdm_intvl_vee/scripts/audit_reading_ivl_vee_athena.sh --> the file should have executable permission for autosys
+2. /home/hdpapp/mdm_intvl_vee/scripts/check_audit_output_athena.sh --> the file should have executable permission for autosys
+
+--------------------------------
+------We can do it later-----
+####Parms (/home/hdpapp/mdm_intvl_vee/parms) 
+	(these two files should already be there in prod)(to be copied from prod)
+1. audit_run_dt.txt 
+2. audit_dates_yyyy-mm-dd.txt 
+
+--------------------------------
+
+####DDLs (/home/hdpapp/mdm_intvl_vee/scripts/hive_ddl) 
+1. /home/hdpapp/mdm_intvl_vee/scripts/hive_ddl/create_ctas_check_audit_output.hql
+2. /home/hdpapp/mdm_intvl_vee/scripts/hive_ddl/create_ctas_min_run_dt_audit_reading_ivl_vee.hql
+3. /home/hdpapp/mdm_intvl_vee/scripts/hive_ddl/create_ctas_check_duplicate_rec.hql
+4. /home/hdpapp/mdm_intvl_vee/scripts/hive_ddl/create_ctas_check_audit_output_qlty
+
+
+--------------------------------
+
+####DMLs (/home/hdpapp/mdm_intvl_vee/scripts/hive_dml)
+1. /home/hdpapp/mdm_intvl_vee/scripts/hive_dml/insert_consume_audit_reading_ivl_vee_non_interval.hql
+2. /home/hdpapp/mdm_intvl_vee/scripts/hive_dml/insert_consume_audit_reading_ivl_vee_interval.hql
+
+============================================
+===========We can do it later=================================
+One time activity for "usage_vee.audit_reading_ivl_vee" - "[s3://aep-datalake-consume-${env}/util/intervals/audit_reading_ivl_vee]"
+1. create a CTAS table by selecting all records(last 30 days) from usage_vee.audit_reading_ivl_vee
+
+2. drop table "usage_vee.audit_reading_ivl_vee"
+     
+3. clean the s3 path(s3://aep-datalake-consume-${env}/util/intervals/audit_reading_ivl_vee) which is pointing to the above table
+
+4. create a new table with parquet format as below:- 
+
+5. copy the data from CTAS table back to the new Parquet table
+
+6. validate/check some random data. 
+
+7. if everything looks good, drop the CTAS table and clean its S3 location.

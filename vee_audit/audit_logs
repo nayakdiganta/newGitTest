@@ -1,0 +1,321 @@
+ACCOUNT_ID=889415020100
+/home/hdpapp/mdm_intvl_vee/logs/check_audit_output-_log_20230106075141.txt
+2023-01-06 7:51:41 ========== VEE AUDIT check_audit_output_athena SCRIPT BEGIN ==========
+Remvoe the last audit output trigger files to avoid reprocessing
+Get audit alret percentage
+PERC_DIFF_TO_ALERT=2
+Start Audit Date generation Fri Jan  6 07:51:41 UTC 2023
+AUDIT_RUN_DT=2022-12-19
+START_DATE=2022-11-29
+executing start_process..
+Generating audit output data file
+executing clean_external_location_dir..
+s3 location to place the exported data from athena
+s3://aep-datalake-work-dev/raw/intervals/vee/audit/ctas_check_audit_output
+start clean_external_location_dir
+2023-01-06 7:51:42 aws s3 rm --recursive s3://aep-datalake-work-dev/raw/intervals/vee/audit/ctas_check_audit_output/
+2023-01-06 7:51:42 Clean-Up external_location_dir s3://aep-datalake-work-dev/raw/intervals/vee/audit/ctas_check_audit_output
+clean_external_location_dir succeeded..
+start create_athena_objects
+/home/hdpapp/mdm_intvl_vee/logs/check_audit_output-_export_athena.tmp
+-rw-r--r-- 1 s362807 users 54 Jan  6 07:51 /home/hdpapp/mdm_intvl_vee/logs/check_audit_output-_export_athena.tmp
+2023-01-06 7:51:42 submit file /home/hdpapp/mdm_intvl_vee/logs/check_audit_output-_export_athena.tmp to Athena
+
+2023-01-06 7:51:43 ====================================================================
+
+DROP TABLE IF EXISTS stg_vee.ctas_check_audit_output;
+
+2023-01-06 7:51:43 ====================================================================
+
+2023-01-06 7:51:43 aws athena start-query-execution --query-string file:///home/hdpapp/mdm_intvl_vee/logs/check_audit_output-_export_athena.tmp --result-configuration OutputLocation=s3://aep-datalake-user-data-dev/athena_result_sets/lambda_partitions_update/ --work-group HdpDeveloper --output text
+2023-01-06 7:51:44 Athena Execution id=fdeedfa9-3280-46bb-bfc0-1a7d30c0ab4b
+
+
+
+2023-01-06 7:51:44 line_cnt=1
+2023-01-06 7:51:45 Query fdeedfa9-3280-46bb-bfc0-1a7d30c0ab4b status => SUCCEEDED ,
+2023-01-06 7:51:50 line_cnt=0
+2023-01-06 7:51:50 ALL RECORDS PROCESSED
+2023-01-06 7:51:50 ====================================================================
+
+
+
+start create_athena_objects
+/home/hdpapp/mdm_intvl_vee/logs/check_audit_output-_export_athena.tmp
+-rw-r--r-- 1 s362807 users 2778 Jan  6 07:51 /home/hdpapp/mdm_intvl_vee/logs/check_audit_output-_export_athena.tmp
+2023-01-06 7:51:50 submit file /home/hdpapp/mdm_intvl_vee/logs/check_audit_output-_export_athena.tmp to Athena
+
+2023-01-06 7:51:50 ====================================================================
+
+CREATE TABLE stg_vee.ctas_check_audit_output
+WITH (
+      external_location = 's3://aep-datalake-work-dev/raw/intervals/vee/audit/ctas_check_audit_output/',
+      format = 'TEXTFILE',
+      field_delimiter = ',',
+	  write_compression = 'NONE'
+      )
+AS
+select 
+	calculate_diff.aep_opco as aep_opco,
+	calculate_diff.aep_usage_dt as aep_usage_dt,
+	calculate_diff.src_intvl_cnt as src_intvl_cnt,
+	calculate_diff.tgt_intvl_cnt as tgt_intvl_cnt,
+	calculate_diff.src_intvl_usg as src_intvl_usg,
+	calculate_diff.tgt_intvl_usg as tgt_intvl_usg,
+	calculate_diff.src_unq_meter_count as src_unq_meter_count,
+	calculate_diff.tgt_unq_meter_count as tgt_unq_meter_count,
+
+	calculate_diff.diff_intvl_cnt as diff_intvl_cnt,
+	calculate_diff.diff_unq_meter_count as diff_unq_meter_count,
+	calculate_diff.diff_intvl_usg as diff_intvl_usg,
+	calculate_diff.max_tgt_intvl_cnt as max_tgt_intvl_cnt,
+
+	calculate_diff.per_diff_intvl_cnt as per_diff_intvl_cnt,
+	calculate_diff.per_diff_unq_mtr as per_diff_unq_mtr,
+	calculate_diff.per_diff_intvl_usg as per_diff_intvl_usg,
+	calculate_diff.per_max_tgt_intvl_cnt as per_max_tgt_intvl_cnt,
+
+	calculate_diff.run_dt as run_dt,
+	calculate_diff.aggr_type as aggr_type,
+	case 
+		when (per_diff_intvl_cnt > 2 OR per_diff_unq_mtr > 2 OR per_diff_intvl_usg > 2) and per_max_tgt_intvl_cnt > 5 then 'SOURCE AND TARGET ISSUE'
+		when (per_diff_intvl_cnt < 2 and per_diff_unq_mtr < 2 and per_diff_intvl_usg < 2) and per_max_tgt_intvl_cnt > 5 then 'SOURCE ISSUE'
+		when (per_diff_intvl_cnt > 2 OR per_diff_unq_mtr > 2 OR per_diff_intvl_usg > 2)  and per_max_tgt_intvl_cnt < 5 then 'TARGET ISSUE'
+	end as issue_type
+from 
+	(
+		select 
+			vee.aep_opco,
+			aep_usage_dt,
+			src_intvl_cnt,
+			tgt_intvl_cnt,
+			src_intvl_usg,
+			tgt_intvl_usg,
+			src_unq_meter_count,
+			tgt_unq_meter_count,
+			diff_intvl_cnt,
+			per_diff_intvl_cnt,
+			diff_unq_meter_count,
+			per_diff_unq_mtr,
+			diff_intvl_usg,
+			per_diff_intvl_usg,
+			max_cnt.max_tgt_intvl_cnt max_tgt_intvl_cnt,
+			((max_cnt.max_tgt_intvl_cnt - src_intvl_cnt) /max_cnt.max_tgt_intvl_cnt)*100 per_max_tgt_intvl_cnt,
+			run_dt,
+			aggr_type 
+		from 
+			usage_vee.audit_reading_ivl_vee vee
+		join 
+			(
+				select 
+					aep_opco,
+					max(tgt_intvl_cnt) max_tgt_intvl_cnt
+				from 
+					usage_vee.audit_reading_ivl_vee 
+				where
+					aggr_type = 'USAGE_DATE' 
+					and run_dt = '2022-12-19' 
+				--and run_dt = '2019-03-25'
+				Group by aep_opco
+			)max_cnt on max_cnt.aep_opco = vee.aep_opco
+		where 
+			aggr_type = 'USAGE_DATE' 
+		--	and run_dt = '2019-03-25'
+		and run_dt = '2022-12-19' 
+		and aep_usage_dt > '2022-11-29' 
+	)calculate_diff
+where 
+	per_diff_intvl_cnt > 2 OR per_diff_unq_mtr > 2 OR per_diff_intvl_usg > 2 OR per_max_tgt_intvl_cnt > 5
+order by 	
+calculate_diff.aep_opco,
+calculate_diff.aep_usage_dt
+;
+2023-01-06 7:51:50 ====================================================================
+
+2023-01-06 7:51:50 aws athena start-query-execution --query-string file:///home/hdpapp/mdm_intvl_vee/logs/check_audit_output-_export_athena.tmp --result-configuration OutputLocation=s3://aep-datalake-user-data-dev/athena_result_sets/lambda_partitions_update/ --work-group HdpDeveloper --output text
+2023-01-06 7:51:51 Athena Execution id=4ef7479c-41ed-4197-ab7f-528e7c86be82
+
+
+
+2023-01-06 7:51:51 line_cnt=1
+2023-01-06 7:51:52 Query 4ef7479c-41ed-4197-ab7f-528e7c86be82 status => RUNNING ,
+2023-01-06 7:51:52 still running, write id 4ef7479c-41ed-4197-ab7f-528e7c86be82 to run file => /home/hdpapp/mdm_intvl_vee/logs/check_audit_output-_export_athena.tmp.execution_id.txt.running
+2023-01-06 7:51:57 line_cnt=1
+2023-01-06 7:51:58 Query 4ef7479c-41ed-4197-ab7f-528e7c86be82 status => SUCCEEDED ,
+2023-01-06 7:52:03 line_cnt=0
+2023-01-06 7:52:03 ALL RECORDS PROCESSED
+2023-01-06 7:52:03 ====================================================================
+
+
+
+cat /home/hdpapp/mdm_intvl_vee/data/check_audit_output.txt
+/home/hdpapp/mdm_intvl_vee/scripts/hive_dml/daily_scripts/check_audit_output_2022-12-19.txt file generation succeeded..
+2023-01-06 7:52:04 /home/hdpapp/mdm_intvl_vee/scripts/hive_dml/daily_scripts/check_audit_output_2022-12-19.txt file generation succeeded..
+OUT_PUT_RECORDS = 
+There is no data mismatch between MDM and Hadoop, sending email to the team.
+check_audit_output done - 2023-01-06@07:52:04.
+executing clean_external_location_dir..
+s3 location to place the exported data from athena
+s3://aep-datalake-work-dev/raw/intervals/vee/audit/ctas_min_run_dt_audit_reading_ivl_vee
+start clean_external_location_dir
+2023-01-06 7:52:04 aws s3 rm --recursive s3://aep-datalake-work-dev/raw/intervals/vee/audit/ctas_min_run_dt_audit_reading_ivl_vee/
+delete: s3://aep-datalake-work-dev/raw/intervals/vee/audit/ctas_min_run_dt_audit_reading_ivl_vee/20230106_071744_00051_deqam_4e392f94-160b-4ed2-a254-2e30ddfcd221
+2023-01-06 7:52:06 Clean-Up external_location_dir s3://aep-datalake-work-dev/raw/intervals/vee/audit/ctas_min_run_dt_audit_reading_ivl_vee
+clean_external_location_dir succeeded..
+start create_athena_objects
+/home/hdpapp/mdm_intvl_vee/logs/check_audit_output-_export_athena.tmp
+-rw-r--r-- 1 s362807 users 68 Jan  6 07:52 /home/hdpapp/mdm_intvl_vee/logs/check_audit_output-_export_athena.tmp
+2023-01-06 7:52:06 submit file /home/hdpapp/mdm_intvl_vee/logs/check_audit_output-_export_athena.tmp to Athena
+
+2023-01-06 7:52:06 ====================================================================
+
+DROP TABLE IF EXISTS stg_vee.ctas_min_run_dt_audit_reading_ivl_vee;
+
+2023-01-06 7:52:06 ====================================================================
+
+2023-01-06 7:52:06 aws athena start-query-execution --query-string file:///home/hdpapp/mdm_intvl_vee/logs/check_audit_output-_export_athena.tmp --result-configuration OutputLocation=s3://aep-datalake-user-data-dev/athena_result_sets/lambda_partitions_update/ --work-group HdpDeveloper --output text
+2023-01-06 7:52:07 Athena Execution id=e29cbef8-57b6-4d92-98bf-84310c88e7d7
+
+
+
+2023-01-06 7:52:07 line_cnt=1
+2023-01-06 7:52:08 Query e29cbef8-57b6-4d92-98bf-84310c88e7d7 status => RUNNING ,
+2023-01-06 7:52:08 still running, write id e29cbef8-57b6-4d92-98bf-84310c88e7d7 to run file => /home/hdpapp/mdm_intvl_vee/logs/check_audit_output-_export_athena.tmp.execution_id.txt.running
+2023-01-06 7:52:13 line_cnt=1
+2023-01-06 7:52:14 Query e29cbef8-57b6-4d92-98bf-84310c88e7d7 status => SUCCEEDED ,
+2023-01-06 7:52:19 line_cnt=0
+2023-01-06 7:52:19 ALL RECORDS PROCESSED
+2023-01-06 7:52:19 ====================================================================
+
+
+
+start create_athena_objects
+/home/hdpapp/mdm_intvl_vee/logs/check_audit_output-_export_athena.tmp
+-rw-r--r-- 1 s362807 users 350 Jan  6 07:52 /home/hdpapp/mdm_intvl_vee/logs/check_audit_output-_export_athena.tmp
+2023-01-06 7:52:19 submit file /home/hdpapp/mdm_intvl_vee/logs/check_audit_output-_export_athena.tmp to Athena
+
+2023-01-06 7:52:19 ====================================================================
+
+CREATE TABLE stg_vee.ctas_min_run_dt_audit_reading_ivl_vee
+WITH (
+      external_location = 's3://aep-datalake-work-dev/raw/intervals/vee/audit/ctas_min_run_dt_audit_reading_ivl_vee/',
+      format = 'TEXTFILE',
+      field_delimiter = ',',
+	  write_compression = 'NONE'
+      )
+AS
+select min(run_dt) min_run_dt from usage_vee.audit_reading_ivl_vee ;
+2023-01-06 7:52:19 ====================================================================
+
+2023-01-06 7:52:19 aws athena start-query-execution --query-string file:///home/hdpapp/mdm_intvl_vee/logs/check_audit_output-_export_athena.tmp --result-configuration OutputLocation=s3://aep-datalake-user-data-dev/athena_result_sets/lambda_partitions_update/ --work-group HdpDeveloper --output text
+2023-01-06 7:52:20 Athena Execution id=e837d387-9218-48e3-a32c-0e1f6e0f4e29
+
+
+
+2023-01-06 7:52:20 line_cnt=1
+2023-01-06 7:52:21 Query e837d387-9218-48e3-a32c-0e1f6e0f4e29 status => RUNNING ,
+2023-01-06 7:52:21 still running, write id e837d387-9218-48e3-a32c-0e1f6e0f4e29 to run file => /home/hdpapp/mdm_intvl_vee/logs/check_audit_output-_export_athena.tmp.execution_id.txt.running
+2023-01-06 7:52:26 line_cnt=1
+2023-01-06 7:52:27 Query e837d387-9218-48e3-a32c-0e1f6e0f4e29 status => SUCCEEDED ,
+2023-01-06 7:52:33 line_cnt=0
+2023-01-06 7:52:33 ALL RECORDS PROCESSED
+2023-01-06 7:52:33 ====================================================================
+
+
+
+Completed 3 Bytes/3 Bytes (28 Bytes/s) with 1 file(s) remainingdownload: s3://aep-datalake-work-dev/raw/intervals/vee/audit/ctas_min_run_dt_audit_reading_ivl_vee/20230106_075220_00086_8cvi8_52e28938-5042-4d54-9fca-1562c84728dd to ../data/get_min_run_dt_from_s3/20230106_075220_00086_8cvi8_52e28938-5042-4d54-9fca-1562c84728dd
+cat /home/hdpapp/mdm_intvl_vee/data/min_run_dt_from_s3.txt
+\N
+ALTER TABLE usage_vee.audit_reading_ivl_vee DROP if exists PARTITION (run_dt='');
+start create_athena_objects
+/home/hdpapp/mdm_intvl_vee/logs/check_audit_output-_export_athena.tmp
+-rw-r--r-- 1 s362807 users 82 Jan  6 07:52 /home/hdpapp/mdm_intvl_vee/logs/check_audit_output-_export_athena.tmp
+2023-01-06 7:52:34 submit file /home/hdpapp/mdm_intvl_vee/logs/check_audit_output-_export_athena.tmp to Athena
+
+2023-01-06 7:52:34 ====================================================================
+
+ALTER TABLE usage_vee.audit_reading_ivl_vee DROP if exists PARTITION (run_dt='');
+
+2023-01-06 7:52:34 ====================================================================
+
+2023-01-06 7:52:34 aws athena start-query-execution --query-string file:///home/hdpapp/mdm_intvl_vee/logs/check_audit_output-_export_athena.tmp --result-configuration OutputLocation=s3://aep-datalake-user-data-dev/athena_result_sets/lambda_partitions_update/ --work-group HdpDeveloper --output text
+2023-01-06 7:52:35 Athena Execution id=a904d7d3-9f3c-4add-8010-6e1a6175b63f
+
+
+
+2023-01-06 7:52:35 line_cnt=1
+2023-01-06 7:52:36 Query a904d7d3-9f3c-4add-8010-6e1a6175b63f status => RUNNING ,
+2023-01-06 7:52:36 still running, write id a904d7d3-9f3c-4add-8010-6e1a6175b63f to run file => /home/hdpapp/mdm_intvl_vee/logs/check_audit_output-_export_athena.tmp.execution_id.txt.running
+2023-01-06 7:52:41 line_cnt=1
+2023-01-06 7:52:42 Query a904d7d3-9f3c-4add-8010-6e1a6175b63f status => SUCCEEDED ,
+2023-01-06 7:52:47 line_cnt=0
+2023-01-06 7:52:47 ALL RECORDS PROCESSED
+2023-01-06 7:52:47 ====================================================================
+
+
+
+Checking Duplicate records in reading_ivl_vee
+executing clean_external_location_dir..
+s3 location to place the exported data from athena
+s3://aep-datalake-work-dev/raw/intervals/vee/audit/ctas_check_duplicate_rec
+start clean_external_location_dir
+2023-01-06 7:52:47 aws s3 rm --recursive s3://aep-datalake-work-dev/raw/intervals/vee/audit/ctas_check_duplicate_rec/
+2023-01-06 7:52:48 Clean-Up external_location_dir s3://aep-datalake-work-dev/raw/intervals/vee/audit/ctas_check_duplicate_rec
+clean_external_location_dir succeeded..
+start create_athena_objects
+/home/hdpapp/mdm_intvl_vee/logs/check_audit_output-_export_athena.tmp
+-rw-r--r-- 1 s362807 users 55 Jan  6 07:52 /home/hdpapp/mdm_intvl_vee/logs/check_audit_output-_export_athena.tmp
+2023-01-06 7:52:48 submit file /home/hdpapp/mdm_intvl_vee/logs/check_audit_output-_export_athena.tmp to Athena
+
+2023-01-06 7:52:48 ====================================================================
+
+DROP TABLE IF EXISTS stg_vee.ctas_check_duplicate_rec;
+
+2023-01-06 7:52:48 ====================================================================
+
+2023-01-06 7:52:48 aws athena start-query-execution --query-string file:///home/hdpapp/mdm_intvl_vee/logs/check_audit_output-_export_athena.tmp --result-configuration OutputLocation=s3://aep-datalake-user-data-dev/athena_result_sets/lambda_partitions_update/ --work-group HdpDeveloper --output text
+2023-01-06 7:52:49 Athena Execution id=5cffea32-1dea-458a-b696-4ffdd98990ba
+
+
+
+2023-01-06 7:52:49 line_cnt=1
+2023-01-06 7:52:50 Query 5cffea32-1dea-458a-b696-4ffdd98990ba status => SUCCEEDED ,
+2023-01-06 7:52:55 line_cnt=0
+2023-01-06 7:52:55 ALL RECORDS PROCESSED
+2023-01-06 7:52:55 ====================================================================
+
+
+
+start create_athena_objects
+/home/hdpapp/mdm_intvl_vee/logs/check_audit_output-_export_athena.tmp
+-rw-r--r-- 1 s362807 users 429 Jan  6 07:52 /home/hdpapp/mdm_intvl_vee/logs/check_audit_output-_export_athena.tmp
+2023-01-06 7:52:55 submit file /home/hdpapp/mdm_intvl_vee/logs/check_audit_output-_export_athena.tmp to Athena
+
+2023-01-06 7:52:55 ====================================================================
+
+CREATE TABLE stg_vee.ctas_check_duplicate_rec
+WITH (
+      external_location = 's3://aep-datalake-work-dev/raw/intervals/vee/audit/ctas_check_duplicate_rec/',
+      format = 'TEXTFILE',
+      field_delimiter = ',',
+	  write_compression = 'NONE'
+      )
+AS
+Select rowkey, count(1) 
+from usage_vee.reading_ivl_vee 
+where aep_opco='oh' and aep_derived_uom='KWH' and aep_usage_dt >= '2022-12-07' 
+group by rowkey having count(1) > 1;
+2023-01-06 7:52:55 ====================================================================
+
+2023-01-06 7:52:55 aws athena start-query-execution --query-string file:///home/hdpapp/mdm_intvl_vee/logs/check_audit_output-_export_athena.tmp --result-configuration OutputLocation=s3://aep-datalake-user-data-dev/athena_result_sets/lambda_partitions_update/ --work-group HdpDeveloper --output text
+2023-01-06 7:52:56 Athena Execution id=d6ddf639-21c6-4bee-8070-4949c8c558fa
+
+
+
+2023-01-06 7:52:56 line_cnt=1
+2023-01-06 7:52:57 Query d6ddf639-21c6-4bee-8070-4949c8c558fa status => RUNNING ,
+2023-01-06 7:52:57 still running, write id d6ddf639-21c6-4bee-8070-4949c8c558fa to run file => /home/hdpapp/mdm_intvl_vee/logs/check_audit_output-_export_athena.tmp.execution_id.txt.running
+2023-01-06 7:53:02 line_cnt=1
+2023-01-06 7:53:03 Query d6ddf639-21c6-4bee-8070-4949c8c558fa status => FAILED ,
+2023-01-06 7:53:03 Athena Query Failed
+Fri Jan  6 07:53:03 UTC 2023

@@ -1,0 +1,250 @@
+/* ----------------- HDP1682 ----------------- */ 
+
+insert_job: HDP1682   job_type: BOX 
+owner: awsautobat
+permission: 
+date_conditions: 0
+condition: success(HDP1610) AND success(HDP2610) AND success(HDP1611) AND success(HDP2611) AND success(HDP1612) AND success(HDP2612) AND success(HDP1613) AND success(HDP2613) AND success(HDP1615) AND success(HDP2615) AND success(HDP1616)
+description: "Audit data load for all Opco"
+alarm_if_fail: 1
+alarm_if_terminated: 1
+
+
+
+/* ----------------- HDP1682C_VEE_AUDIT_INTVL_AGGR_BY_OPCO_PART1_TGT_PSO ----------------- */ 
+
+ insert_job: HDP1682C_VEE_AUDIT_INTVL_AGGR_BY_OPCO_PART1_TGT_PSO   job_type: CMD 
+ box_name: HDP1682
+ command: /home/hdpapp/common/scripts/submit_emr_script_step.sh persistent_cluster ${MDMVEE_SCRIPTS}/xfrm_msrmt_audit_tgt.sh pso PART1
+ machine: AWSHDPSVR
+ owner: awsautobat
+ permission: 
+ date_conditions: 0
+ condition: success(HDP1682C_VEE_AUDIT_INTVL_AGGR_BY_OPCO_PART1_TGT_AP) AND success(HDP1680C_VEE_AUDIT_GEN_AUDIT_DATES)
+ description: "Ingest Audit MSRMT Data"
+ std_out_file: "$MDMVEE_ASYS_LOGS/$AUTO_JOB_NAME.OUT"
+ std_err_file: "$MDMVEE_ASYS_LOGS/$AUTO_JOB_NAME.ERR"
+ alarm_if_fail: 1
+ profile: "/home/hdpapp/mdm_intvl_vee/scripts/.mdm_intvl_vee_env"
+ alarm_if_terminated: 1
+ group: DFLTGRP
+
+
+
+/* ----------------- HDP1682C_VEE_AUDIT_INTVL_AGGR_BY_OPCO_PART2_TGT_PSO ----------------- */ 
+
+ insert_job: HDP1682C_VEE_AUDIT_INTVL_AGGR_BY_OPCO_PART2_TGT_PSO   job_type: CMD 
+ box_name: HDP1682
+ command: /home/hdpapp/common/scripts/submit_emr_script_step.sh persistent_cluster ${MDMVEE_SCRIPTS}/xfrm_msrmt_audit_tgt.sh pso PART2
+ machine: AWSHDPSVR
+ owner: awsautobat
+ permission: 
+ date_conditions: 0
+ condition: success(HDP1682C_VEE_AUDIT_INTVL_AGGR_BY_OPCO_PART2_TGT_AP) AND success(HDP1680C_VEE_AUDIT_GEN_AUDIT_DATES)
+ description: "Ingest Audit MSRMT Data"
+ std_out_file: "$MDMVEE_ASYS_LOGS/$AUTO_JOB_NAME.OUT"
+ std_err_file: "$MDMVEE_ASYS_LOGS/$AUTO_JOB_NAME.ERR"
+ alarm_if_fail: 1
+ profile: "/home/hdpapp/mdm_intvl_vee/scripts/.mdm_intvl_vee_env"
+ alarm_if_terminated: 1
+ group: DFLTGRP
+
+
+
+/* ----------------- HDP1682C_VEE_AUDIT_INTVL_AGGR_BY_OPCO_PART1_TGT_OH ----------------- */ 
+
+ insert_job: HDP1682C_VEE_AUDIT_INTVL_AGGR_BY_OPCO_PART1_TGT_OH   job_type: CMD 
+ box_name: HDP1682
+ command: /home/hdpapp/common/scripts/submit_emr_script_step.sh persistent_cluster ${MDMVEE_SCRIPTS}/xfrm_msrmt_audit_tgt.sh oh PART1
+ machine: AWSHDPSVR
+ owner: awsautobat
+ permission: 
+ date_conditions: 0
+ condition: success(HDP1610) AND success(HDP2610) AND success(HDP1680C_VEE_AUDIT_GEN_AUDIT_DATES)
+ description: "Ingest Audit MSRMT Data"
+ std_out_file: "$MDMVEE_ASYS_LOGS/$AUTO_JOB_NAME.OUT"
+ std_err_file: "$MDMVEE_ASYS_LOGS/$AUTO_JOB_NAME.ERR"
+ alarm_if_fail: 1
+ profile: "/home/hdpapp/mdm_intvl_vee/scripts/.mdm_intvl_vee_env"
+ alarm_if_terminated: 1
+ group: DFLTGRP
+
+
+
+/* ----------------- HDP1682C_VEE_AUDIT_INTVL_AGGR_BY_OPCO_PART2_TGT_OH ----------------- */ 
+
+ insert_job: HDP1682C_VEE_AUDIT_INTVL_AGGR_BY_OPCO_PART2_TGT_OH   job_type: CMD 
+ box_name: HDP1682
+ command: /home/hdpapp/common/scripts/submit_emr_script_step.sh persistent_cluster ${MDMVEE_SCRIPTS}/xfrm_msrmt_audit_tgt.sh oh PART2
+ machine: AWSHDPSVR
+ owner: awsautobat
+ permission: 
+ date_conditions: 0
+ condition: success(HDP1610) AND success(HDP2610) AND success(HDP1680C_VEE_AUDIT_GEN_AUDIT_DATES)
+ description: "Ingest Audit MSRMT Data"
+ std_out_file: "$MDMVEE_ASYS_LOGS/$AUTO_JOB_NAME.OUT"
+ std_err_file: "$MDMVEE_ASYS_LOGS/$AUTO_JOB_NAME.ERR"
+ alarm_if_fail: 1
+ profile: "/home/hdpapp/mdm_intvl_vee/scripts/.mdm_intvl_vee_env"
+ alarm_if_terminated: 1
+ group: DFLTGRP
+
+
+
+/* ----------------- HDP1682C_VEE_AUDIT_INTVL_AGGR_BY_OPCO_PART1_TGT_IM ----------------- */ 
+
+ insert_job: HDP1682C_VEE_AUDIT_INTVL_AGGR_BY_OPCO_PART1_TGT_IM   job_type: CMD 
+ box_name: HDP1682
+ command: /home/hdpapp/common/scripts/submit_emr_script_step.sh persistent_cluster ${MDMVEE_SCRIPTS}/xfrm_msrmt_audit_tgt.sh im PART1
+ machine: AWSHDPSVR
+ owner: awsautobat
+ permission: 
+ date_conditions: 0
+ condition: success(HDP1682C_VEE_AUDIT_INTVL_AGGR_BY_OPCO_PART1_TGT_PSO) AND success(HDP1680C_VEE_AUDIT_GEN_AUDIT_DATES)
+ description: "Ingest Audit MSRMT Data"
+ std_out_file: "$MDMVEE_ASYS_LOGS/$AUTO_JOB_NAME.OUT"
+ std_err_file: "$MDMVEE_ASYS_LOGS/$AUTO_JOB_NAME.ERR"
+ alarm_if_fail: 1
+ profile: "/home/hdpapp/mdm_intvl_vee/scripts/.mdm_intvl_vee_env"
+ alarm_if_terminated: 1
+ group: DFLTGRP
+
+
+
+/* ----------------- HDP1682C_VEE_AUDIT_INTVL_AGGR_BY_OPCO_PART2_TGT_IM ----------------- */ 
+
+ insert_job: HDP1682C_VEE_AUDIT_INTVL_AGGR_BY_OPCO_PART2_TGT_IM   job_type: CMD 
+ box_name: HDP1682
+ command: /home/hdpapp/common/scripts/submit_emr_script_step.sh persistent_cluster ${MDMVEE_SCRIPTS}/xfrm_msrmt_audit_tgt.sh im PART2
+ machine: AWSHDPSVR
+ owner: awsautobat
+ permission: 
+ date_conditions: 0
+ condition: success(HDP1682C_VEE_AUDIT_INTVL_AGGR_BY_OPCO_PART2_TGT_PSO) AND success(HDP1680C_VEE_AUDIT_GEN_AUDIT_DATES)
+ description: "Ingest Audit MSRMT Data"
+ std_out_file: "$MDMVEE_ASYS_LOGS/$AUTO_JOB_NAME.OUT"
+ std_err_file: "$MDMVEE_ASYS_LOGS/$AUTO_JOB_NAME.ERR"
+ alarm_if_fail: 1
+ profile: "/home/hdpapp/mdm_intvl_vee/scripts/.mdm_intvl_vee_env"
+ alarm_if_terminated: 1
+ group: DFLTGRP
+
+
+
+/* ----------------- HDP1682C_VEE_AUDIT_INTVL_AGGR_BY_OPCO_PART1_TGT_TX ----------------- */ 
+
+ insert_job: HDP1682C_VEE_AUDIT_INTVL_AGGR_BY_OPCO_PART1_TGT_TX   job_type: CMD 
+ box_name: HDP1682
+ command: /home/hdpapp/common/scripts/submit_emr_script_step.sh persistent_cluster ${MDMVEE_SCRIPTS}/xfrm_msrmt_audit_tgt.sh tx PART1
+ machine: AWSHDPSVR
+ owner: awsautobat
+ permission: 
+ date_conditions: 0
+ condition: success(HDP1682C_VEE_AUDIT_INTVL_AGGR_BY_OPCO_PART1_TGT_OH) AND success(HDP1680C_VEE_AUDIT_GEN_AUDIT_DATES)
+ description: "Ingest Audit MSRMT Data"
+ std_out_file: "$MDMVEE_ASYS_LOGS/$AUTO_JOB_NAME.OUT"
+ std_err_file: "$MDMVEE_ASYS_LOGS/$AUTO_JOB_NAME.ERR"
+ alarm_if_fail: 1
+ profile: "/home/hdpapp/mdm_intvl_vee/scripts/.mdm_intvl_vee_env"
+ alarm_if_terminated: 1
+ group: DFLTGRP
+
+
+
+/* ----------------- HDP1682C_VEE_AUDIT_INTVL_AGGR_BY_OPCO_PART2_TGT_TX ----------------- */ 
+
+ insert_job: HDP1682C_VEE_AUDIT_INTVL_AGGR_BY_OPCO_PART2_TGT_TX   job_type: CMD 
+ box_name: HDP1682
+ command: /home/hdpapp/common/scripts/submit_emr_script_step.sh persistent_cluster ${MDMVEE_SCRIPTS}/xfrm_msrmt_audit_tgt.sh tx PART2
+ machine: AWSHDPSVR
+ owner: awsautobat
+ permission: 
+ date_conditions: 0
+ condition: success(HDP1682C_VEE_AUDIT_INTVL_AGGR_BY_OPCO_PART2_TGT_OH) AND success(HDP1680C_VEE_AUDIT_GEN_AUDIT_DATES)
+ description: "Ingest Audit MSRMT Data"
+ std_out_file: "$MDMVEE_ASYS_LOGS/$AUTO_JOB_NAME.OUT"
+ std_err_file: "$MDMVEE_ASYS_LOGS/$AUTO_JOB_NAME.ERR"
+ alarm_if_fail: 1
+ profile: "/home/hdpapp/mdm_intvl_vee/scripts/.mdm_intvl_vee_env"
+ alarm_if_terminated: 1
+ group: DFLTGRP
+
+
+
+/* ----------------- HDP1682C_VEE_AUDIT_INTVL_AGGR_BY_OPCO_PART1_TGT_AP ----------------- */ 
+
+ insert_job: HDP1682C_VEE_AUDIT_INTVL_AGGR_BY_OPCO_PART1_TGT_AP   job_type: CMD 
+ box_name: HDP1682
+ command: /home/hdpapp/common/scripts/submit_emr_script_step.sh persistent_cluster ${MDMVEE_SCRIPTS}/xfrm_msrmt_audit_tgt.sh ap PART1
+ machine: AWSHDPSVR
+ owner: awsautobat
+ permission: 
+ date_conditions: 0
+ condition: success(HDP1682C_VEE_AUDIT_INTVL_AGGR_BY_OPCO_PART1_TGT_TX) AND success(HDP1680C_VEE_AUDIT_GEN_AUDIT_DATES)
+ description: "Ingest Audit MSRMT Data"
+ std_out_file: "$MDMVEE_ASYS_LOGS/$AUTO_JOB_NAME.OUT"
+ std_err_file: "$MDMVEE_ASYS_LOGS/$AUTO_JOB_NAME.ERR"
+ alarm_if_fail: 1
+ profile: "/home/hdpapp/mdm_intvl_vee/scripts/.mdm_intvl_vee_env"
+ alarm_if_terminated: 1
+ group: DFLTGRP
+
+
+
+/* ----------------- HDP1682C_VEE_AUDIT_INTVL_AGGR_BY_OPCO_PART2_TGT_AP ----------------- */ 
+
+ insert_job: HDP1682C_VEE_AUDIT_INTVL_AGGR_BY_OPCO_PART2_TGT_AP   job_type: CMD 
+ box_name: HDP1682
+ command: /home/hdpapp/common/scripts/submit_emr_script_step.sh persistent_cluster ${MDMVEE_SCRIPTS}/xfrm_msrmt_audit_tgt.sh ap PART2
+ machine: AWSHDPSVR
+ owner: awsautobat
+ permission: 
+ date_conditions: 0
+ condition: success(HDP1682C_VEE_AUDIT_INTVL_AGGR_BY_OPCO_PART2_TGT_TX) AND success(HDP1680C_VEE_AUDIT_GEN_AUDIT_DATES)
+ description: "Ingest Audit MSRMT Data"
+ std_out_file: "$MDMVEE_ASYS_LOGS/$AUTO_JOB_NAME.OUT"
+ std_err_file: "$MDMVEE_ASYS_LOGS/$AUTO_JOB_NAME.ERR"
+ alarm_if_fail: 1
+ profile: "/home/hdpapp/mdm_intvl_vee/scripts/.mdm_intvl_vee_env"
+ alarm_if_terminated: 1
+ group: DFLTGRP
+
+
+
+/* ----------------- HDP1682C_VEE_AUDIT_INTVL_AGGR_BY_OPCO_PART1_TGT_SWP ----------------- */ 
+
+ insert_job: HDP1682C_VEE_AUDIT_INTVL_AGGR_BY_OPCO_PART1_TGT_SWP   job_type: CMD 
+ box_name: HDP1682
+ command: /home/hdpapp/common/scripts/submit_emr_script_step.sh persistent_cluster ${MDMVEE_SCRIPTS}/xfrm_msrmt_audit_tgt.sh swp PART1
+ machine: AWSHDPSVR
+ owner: awsautobat
+ permission: 
+ date_conditions: 0
+ condition: success(HDP1682C_VEE_AUDIT_INTVL_AGGR_BY_OPCO_PART1_TGT_IM) AND success(HDP1680C_VEE_AUDIT_GEN_AUDIT_DATES)
+ description: "Ingest Audit MSRMT Data"
+ std_out_file: "$MDMVEE_ASYS_LOGS/$AUTO_JOB_NAME.OUT"
+ std_err_file: "$MDMVEE_ASYS_LOGS/$AUTO_JOB_NAME.ERR"
+ alarm_if_fail: 1
+ profile: "/home/hdpapp/mdm_intvl_vee/scripts/.mdm_intvl_vee_env"
+ alarm_if_terminated: 1
+ group: DFLTGRP
+
+
+
+/* ----------------- HDP1682C_VEE_AUDIT_INTVL_AGGR_BY_OPCO_PART2_TGT_SWP ----------------- */ 
+
+ insert_job: HDP1682C_VEE_AUDIT_INTVL_AGGR_BY_OPCO_PART2_TGT_SWP   job_type: CMD 
+ box_name: HDP1682
+ command: /home/hdpapp/common/scripts/submit_emr_script_step.sh persistent_cluster ${MDMVEE_SCRIPTS}/xfrm_msrmt_audit_tgt.sh swp PART2
+ machine: AWSHDPSVR
+ owner: awsautobat
+ permission: 
+ date_conditions: 0
+ condition: success(HDP1682C_VEE_AUDIT_INTVL_AGGR_BY_OPCO_PART2_TGT_IM) AND success(HDP1680C_VEE_AUDIT_GEN_AUDIT_DATES)
+ description: "Ingest Audit MSRMT Data"
+ std_out_file: "$MDMVEE_ASYS_LOGS/$AUTO_JOB_NAME.OUT"
+ std_err_file: "$MDMVEE_ASYS_LOGS/$AUTO_JOB_NAME.ERR"
+ alarm_if_fail: 1
+ profile: "/home/hdpapp/mdm_intvl_vee/scripts/.mdm_intvl_vee_env"
+ alarm_if_terminated: 1
+ group: DFLTGRP

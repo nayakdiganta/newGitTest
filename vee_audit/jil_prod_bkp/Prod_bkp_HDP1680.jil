@@ -1,0 +1,221 @@
+/* ----------------- HDP1680 ----------------- */ 
+
+insert_job: HDP1680   job_type: BOX 
+owner: awsautobat
+permission: 
+date_conditions: 1
+days_of_week: all
+start_times: "19:45"
+condition: success(HDP1603C_MDM_VEE_CREATE_EMR_CLUSTER)
+description: "Ingest Audit MSRMT Data"
+alarm_if_fail: 0
+alarm_if_terminated: 0
+group: DFLTGRP
+
+
+
+/* ----------------- HDP1680C_MDM_VEE_INGEST_MSRMT_AUDIT_01 ----------------- */ 
+
+ insert_job: HDP1680C_MDM_VEE_INGEST_MSRMT_AUDIT_01   job_type: CMD 
+ box_name: HDP1680
+ command: /home/hdpapp/common/scripts/submit_emr_script_step.sh vee /home/hdpapp/mdm_intvl_vee/scripts/stg_import_msrmt_audit.sh P1
+ machine: AWSHDPSVR
+ owner: awsautobat
+ permission: 
+ date_conditions: 0
+ description: "Ingest Audit MSRMT Data"
+ n_retrys: 2
+ box_terminator: 1
+ std_out_file: "$MDMVEE_ASYS_LOGS/$AUTO_JOB_NAME.OUT"
+ std_err_file: "$MDMVEE_ASYS_LOGS/$AUTO_JOB_NAME.ERR"
+ alarm_if_fail: 1
+ profile: "/home/hdpapp/mdm_intvl_vee/scripts/.mdm_intvl_vee_env"
+ alarm_if_terminated: 1
+ group: DFLTGRP
+
+
+
+/* ----------------- HDP1680C_MDM_VEE_INGEST_MSRMT_AUDIT_02 ----------------- */ 
+
+ insert_job: HDP1680C_MDM_VEE_INGEST_MSRMT_AUDIT_02   job_type: CMD 
+ box_name: HDP1680
+ command: /home/hdpapp/common/scripts/submit_emr_script_step.sh vee /home/hdpapp/mdm_intvl_vee/scripts/stg_import_msrmt_audit.sh P2
+ machine: AWSHDPSVR
+ owner: awsautobat
+ permission: 
+ date_conditions: 0
+ description: "Ingest Audit MSRMT Data"
+ n_retrys: 2
+ box_terminator: 1
+ std_out_file: "$MDMVEE_ASYS_LOGS/$AUTO_JOB_NAME.OUT"
+ std_err_file: "$MDMVEE_ASYS_LOGS/$AUTO_JOB_NAME.ERR"
+ alarm_if_fail: 1
+ profile: "/home/hdpapp/mdm_intvl_vee/scripts/.mdm_intvl_vee_env"
+ alarm_if_terminated: 1
+ group: DFLTGRP
+
+
+
+/* ----------------- HDP1680C_MDM_VEE_INGEST_MSRMT_AUDIT_03 ----------------- */ 
+
+ insert_job: HDP1680C_MDM_VEE_INGEST_MSRMT_AUDIT_03   job_type: CMD 
+ box_name: HDP1680
+ command: /home/hdpapp/common/scripts/submit_emr_script_step.sh vee /home/hdpapp/mdm_intvl_vee/scripts/stg_import_msrmt_audit.sh P3
+ machine: AWSHDPSVR
+ owner: awsautobat
+ permission: 
+ date_conditions: 0
+ description: "Ingest Audit MSRMT Data"
+ n_retrys: 2
+ box_terminator: 1
+ std_out_file: "$MDMVEE_ASYS_LOGS/$AUTO_JOB_NAME.OUT"
+ std_err_file: "$MDMVEE_ASYS_LOGS/$AUTO_JOB_NAME.ERR"
+ alarm_if_fail: 1
+ profile: "/home/hdpapp/mdm_intvl_vee/scripts/.mdm_intvl_vee_env"
+ alarm_if_terminated: 1
+ group: DFLTGRP
+
+
+
+/* ----------------- HDP1680C_MDM_VEE_INGEST_MSRMT_AUDIT_04 ----------------- */ 
+
+ insert_job: HDP1680C_MDM_VEE_INGEST_MSRMT_AUDIT_04   job_type: CMD 
+ box_name: HDP1680
+ command: /home/hdpapp/common/scripts/submit_emr_script_step.sh vee /home/hdpapp/mdm_intvl_vee/scripts/stg_import_msrmt_audit.sh P4
+ machine: AWSHDPSVR
+ owner: awsautobat
+ permission: 
+ date_conditions: 0
+ description: "Ingest Audit MSRMT Data"
+ n_retrys: 2
+ box_terminator: 1
+ std_out_file: "$MDMVEE_ASYS_LOGS/$AUTO_JOB_NAME.OUT"
+ std_err_file: "$MDMVEE_ASYS_LOGS/$AUTO_JOB_NAME.ERR"
+ alarm_if_fail: 1
+ profile: "/home/hdpapp/mdm_intvl_vee/scripts/.mdm_intvl_vee_env"
+ alarm_if_terminated: 1
+ group: DFLTGRP
+
+
+
+/* ----------------- HDP1680C_MDM_VEE_INGEST_MSRMT_AUDIT_05 ----------------- */ 
+
+ insert_job: HDP1680C_MDM_VEE_INGEST_MSRMT_AUDIT_05   job_type: CMD 
+ box_name: HDP1680
+ command: /home/hdpapp/common/scripts/submit_emr_script_step.sh vee /home/hdpapp/mdm_intvl_vee/scripts/stg_import_msrmt_audit.sh P5
+ machine: AWSHDPSVR
+ owner: awsautobat
+ permission: 
+ date_conditions: 0
+ description: "Ingest Audit MSRMT Data"
+ n_retrys: 2
+ box_terminator: 1
+ std_out_file: "$MDMVEE_ASYS_LOGS/$AUTO_JOB_NAME.OUT"
+ std_err_file: "$MDMVEE_ASYS_LOGS/$AUTO_JOB_NAME.ERR"
+ alarm_if_fail: 1
+ profile: "/home/hdpapp/mdm_intvl_vee/scripts/.mdm_intvl_vee_env"
+ alarm_if_terminated: 1
+ group: DFLTGRP
+
+
+
+/* ----------------- HDP1680C_MDM_VEE_INGEST_MSRMT_AUDIT_06 ----------------- */ 
+
+ insert_job: HDP1680C_MDM_VEE_INGEST_MSRMT_AUDIT_06   job_type: CMD 
+ box_name: HDP1680
+ command: /home/hdpapp/common/scripts/submit_emr_script_step.sh vee /home/hdpapp/mdm_intvl_vee/scripts/stg_import_msrmt_audit.sh P6
+ machine: AWSHDPSVR
+ owner: awsautobat
+ permission: 
+ date_conditions: 0
+ description: "Ingest Audit MSRMT Data"
+ n_retrys: 2
+ box_terminator: 1
+ std_out_file: "$MDMVEE_ASYS_LOGS/$AUTO_JOB_NAME.OUT"
+ std_err_file: "$MDMVEE_ASYS_LOGS/$AUTO_JOB_NAME.ERR"
+ alarm_if_fail: 1
+ profile: "/home/hdpapp/mdm_intvl_vee/scripts/.mdm_intvl_vee_env"
+ alarm_if_terminated: 1
+ group: DFLTGRP
+
+
+
+/* ----------------- HDP1680C_MDM_VEE_INGEST_MSRMT_AUDIT_07 ----------------- */ 
+
+ insert_job: HDP1680C_MDM_VEE_INGEST_MSRMT_AUDIT_07   job_type: CMD 
+ box_name: HDP1680
+ command: /home/hdpapp/common/scripts/submit_emr_script_step.sh vee /home/hdpapp/mdm_intvl_vee/scripts/stg_import_msrmt_audit.sh P7
+ machine: AWSHDPSVR
+ owner: awsautobat
+ permission: 
+ date_conditions: 0
+ description: "Ingest Audit MSRMT Data"
+ n_retrys: 2
+ box_terminator: 1
+ std_out_file: "$MDMVEE_ASYS_LOGS/$AUTO_JOB_NAME.OUT"
+ std_err_file: "$MDMVEE_ASYS_LOGS/$AUTO_JOB_NAME.ERR"
+ alarm_if_fail: 1
+ profile: "/home/hdpapp/mdm_intvl_vee/scripts/.mdm_intvl_vee_env"
+ alarm_if_terminated: 1
+ group: DFLTGRP
+
+
+
+/* ----------------- HDP1680C_MDM_VEE_INGEST_MSRMT_AUDIT_08 ----------------- */ 
+
+ insert_job: HDP1680C_MDM_VEE_INGEST_MSRMT_AUDIT_08   job_type: CMD 
+ box_name: HDP1680
+ command: /home/hdpapp/common/scripts/submit_emr_script_step.sh vee /home/hdpapp/mdm_intvl_vee/scripts/stg_import_msrmt_audit.sh P8
+ machine: AWSHDPSVR
+ owner: awsautobat
+ permission: 
+ date_conditions: 0
+ description: "Ingest Audit MSRMT Data"
+ n_retrys: 2
+ box_terminator: 1
+ std_out_file: "$MDMVEE_ASYS_LOGS/$AUTO_JOB_NAME.OUT"
+ std_err_file: "$MDMVEE_ASYS_LOGS/$AUTO_JOB_NAME.ERR"
+ alarm_if_fail: 1
+ profile: "/home/hdpapp/mdm_intvl_vee/scripts/.mdm_intvl_vee_env"
+ alarm_if_terminated: 1
+ group: DFLTGRP
+
+
+
+/* ----------------- HDP1680C_VEE_AUDIT_INTVL_AGGR_FOR_SRC ----------------- */ 
+
+ insert_job: HDP1680C_VEE_AUDIT_INTVL_AGGR_FOR_SRC   job_type: CMD 
+ box_name: HDP1680
+ command: /home/hdpapp/common/scripts/submit_emr_script_step.sh vee /home/hdpapp/mdm_intvl_vee/scripts/xfrm_msrmt_audit_src.sh
+ machine: AWSHDPSVR
+ owner: awsautobat
+ permission: 
+ date_conditions: 0
+ condition: success(HDP1680C_MDM_VEE_INGEST_MSRMT_AUDIT_01) AND success(HDP1680C_MDM_VEE_INGEST_MSRMT_AUDIT_02) AND success(HDP1680C_MDM_VEE_INGEST_MSRMT_AUDIT_03) AND success(HDP1680C_MDM_VEE_INGEST_MSRMT_AUDIT_04) AND success(HDP1680C_MDM_VEE_INGEST_MSRMT_AUDIT_05) AND success(HDP1680C_MDM_VEE_INGEST_MSRMT_AUDIT_06) AND success(HDP1680C_MDM_VEE_INGEST_MSRMT_AUDIT_07) AND success(HDP1680C_MDM_VEE_INGEST_MSRMT_AUDIT_08)
+ description: "Ingest Audit MSRMT Data"
+ std_out_file: "$MDMVEE_ASYS_LOGS/$AUTO_JOB_NAME.OUT"
+ std_err_file: "$MDMVEE_ASYS_LOGS/$AUTO_JOB_NAME.ERR"
+ alarm_if_fail: 1
+ profile: "/home/hdpapp/mdm_intvl_vee/scripts/.mdm_intvl_vee_env"
+ alarm_if_terminated: 1
+ group: DFLTGRP
+
+
+
+/* ----------------- HDP1680C_VEE_AUDIT_GEN_AUDIT_DATES ----------------- */ 
+
+ insert_job: HDP1680C_VEE_AUDIT_GEN_AUDIT_DATES   job_type: CMD 
+ box_name: HDP1680
+ command: /home/hdpapp/common/scripts/submit_emr_script_step.sh vee /home/hdpapp/mdm_intvl_vee/scripts/xfrm_msrmt_audit_gen_PART1s.sh
+ machine: AWSHDPSVR
+ owner: awsautobat
+ permission: 
+ date_conditions: 0
+ condition: success(HDP1680C_MDM_VEE_INGEST_MSRMT_AUDIT_01) AND success(HDP1680C_MDM_VEE_INGEST_MSRMT_AUDIT_02) AND success(HDP1680C_MDM_VEE_INGEST_MSRMT_AUDIT_03) AND success(HDP1680C_MDM_VEE_INGEST_MSRMT_AUDIT_04) AND success(HDP1680C_MDM_VEE_INGEST_MSRMT_AUDIT_05) AND success(HDP1680C_MDM_VEE_INGEST_MSRMT_AUDIT_06) AND success(HDP1680C_MDM_VEE_INGEST_MSRMT_AUDIT_07) AND success(HDP1680C_MDM_VEE_INGEST_MSRMT_AUDIT_08)
+ description: "Ingest Audit MSRMT Data"
+ std_out_file: "$MDMVEE_ASYS_LOGS/$AUTO_JOB_NAME.OUT"
+ std_err_file: "$MDMVEE_ASYS_LOGS/$AUTO_JOB_NAME.ERR"
+ alarm_if_fail: 1
+ profile: "/home/hdpapp/mdm_intvl_vee/scripts/.mdm_intvl_vee_env"
+ alarm_if_terminated: 1
+ group: DFLTGRP

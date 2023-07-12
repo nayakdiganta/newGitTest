@@ -1,0 +1,747 @@
+##/**------------------------------------------------------------------------------------------**/
+##/**    AMERICAN ELECTRIC POWER - Outage Preditcion CFN script                                **/
+##/**------------------------------------------------------------------------------------------**/
+##/**                               Confidentiality Information:                               **/
+##/**                               Copyright 2022, 2023 by                                    **/
+##/**                               American Electric Power                                    **/
+##/**                                                                                          **/
+##/** This module is confidential and proprietary information of American Electric             **/
+##/** Power, it is not to be copied or reproduced in any form, by any means, in                **/
+##/** whole or in part, nor is it to be used for any purpose other than that for               **/
+##/** which it is expressly provide without written permission of AEP.                         **/
+##/**------------------------------------------------------------------------------------------**/
+##/** AEP Custom Changes                                                                       **/
+##/**  Version #   Name                     Date            Description                        **/
+##/**   V0.1       Diganta                  05/15/2023      First Attempt in CloudFormation    **/
+##/**                                                                                          **/
+##/**------------------------------------------------------------------------------------------**/
+
+AWSTemplateFormatVersion: 2010-09-09
+Description: Outage Prediction GlueETL CFN Script
+
+## Note: Command to create Stack via CLI
+## aws cloudformation deploy \
+## --template outage-prediction.yml \
+## --stack-name outage-prediction \
+## --tags BusinessUnit=ITCORP \
+##        Owner=analytics_hadoop@aep.com \
+##        map-migrated=d-server-01lbno209ea5yq \
+##        map-migrated-app=Hadoop_Prod \
+## --capabilities "CAPABILITY_NAMED_IAM" \
+## --no-fail-on-empty-changeset \
+## --parameter-overrides pEnvironment=dev
+
+## Define Parameters
+
+Parameters:
+  ## Env
+  pEnvironment:
+    Description: AEP Lifecycle Environment
+    Type: String
+    Default: dev
+    AllowedValues: [dev, qa, prod]
+
+  ## JobNames and CodeBucket
+  #pGlueETLJobName
+  pGlueETLJobNameEventCatgIncr:
+    Type: String
+    AllowedPattern: "[a-zA-Z0-9]+[a-zA-Z0-9-]+[a-zA-Z0-9]+"
+    Default: end-device-event-catg-incr-load
+
+  pGlueETLJobNameEventCatgHist:
+    Type: String
+    AllowedPattern: "[a-zA-Z0-9]+[a-zA-Z0-9-]+[a-zA-Z0-9]+"
+    Default: end-device-event-catg-hist-load
+
+  pGlueETLJobNameOutageSumm:
+    Type: String
+    AllowedPattern: "[a-zA-Z0-9]+[a-zA-Z0-9-]+[a-zA-Z0-9]+"
+    Default: meter-event-outage-summ
+
+  pGlueETLCodeBucket:
+    Description: Bucket where Glue ETL Code resides
+    Type: String
+    Default: "aep-datalake-apps"
+
+  ## Useful Buckets
+
+  pS3DataWorkBucket:
+    Description: Bucket where S3 Raw Dataset resides (exclude dev,qa,prod in the name)
+    Type: String
+    Default: 'aep-datalake-work'
+
+  pS3DataConsumeBucket:
+    Description: Bucket where S3 Raw Dataset resides (exclude dev,qa,prod in the name)
+    Type: String
+    Default: "aep-datalake-consume"
+
+  pS3DataTransformBucket:
+    Description: Bucket where meter_premise data resides
+    Type: String
+    Default: "aep-datalake-transform"
+
+  pS3DataLogBucket:
+    Description: Bucket where S3 Raw Dataset resides
+    Type: String
+    Default: "aep-dl-log"
+
+  pStepFunctionName:
+    Type: String
+    Description: Function Name
+    Default: 'aep-sf0-outage-prediction'
+
+  pEventschedulerName:
+    Type: String
+    Default: aep-dl-outage-prediction-evtsch
+  
+
+  # pAwsRegion:
+  #   Description: Bucket where S3 Raw Dataset resides
+  #   Type: String
+  #   Default: 'us-east-1'
+
+## SNS Topic
+  pSNSTopicName:
+    Type: String
+    AllowedPattern: "[a-zA-Z0-9]+[a-zA-Z0-9-]+[a-zA-Z0-9]+"
+    Default: aep-dl-SNS
+
+## Define Mappings for jdbc conn
+
+
+## Define Resource Definitions to be built
+
+Resources:
+  rCatgIncrLoadLastRunDtParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/aep/analytics/hdp/${pEnvironment}/ppo/parms/last_run_dt_incr"   
+      Type: String
+      Value: " "
+      Description: SSM Parameter for last_run_dt_incr.
+      Tags: {'Owner':'analytics_generation@aep.com', 'Team':'Analytics Hadoop', 'ProductName':'SSM', 'BusinessUnit':'ITCORP', 'BackUp':'False', 'UseCase':'Outage_Prediction','Step':'last_run_dt Value'}
+
+  rCatgIncrLoadLastRunDtPassToOutgSummParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/aep/analytics/hdp/${pEnvironment}/ppo/parms/last_run_dt_incr_pass_to_outg_summ"   
+      Type: String
+      Value: " "
+      Description: SSM Parameter for last_run_dt_incr_pass_to_outg_summ.
+      Tags: {'Owner':'analytics_generation@aep.com', 'Team':'Analytics Hadoop', 'ProductName':'SSM', 'BusinessUnit':'ITCORP', 'BackUp':'False', 'UseCase':'Outage_Prediction','Step':'last_run_dt Value'}
+
+
+  ## Define History run parameters
+  rCatgHistLoadLastRunDtParameterap:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/aep/analytics/hdp/${pEnvironment}/ppo/parms/last_run_dt_hist_ap"   
+      Type: String
+      Value: "2023-04-01~2023-04-30"
+      Description: SSM Parameter for last_run_dt_hist_ap.
+      Tags: {'Owner':'analytics_generation@aep.com', 'Team':'Analytics Hadoop', 'ProductName':'SSM', 'BusinessUnit':'ITCORP', 'BackUp':'False', 'UseCase':'Outage_Prediction','Step':'last_run_dt Value'}
+
+  rCatgHistLoadLastRunDtParameteroh:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/aep/analytics/hdp/${pEnvironment}/ppo/parms/last_run_dt_hist_oh"   
+      Type: String
+      Value: "2023-04-01~2023-04-30"
+      Description: SSM Parameter for last_run_dt_hist_oh.
+      Tags: {'Owner':'analytics_generation@aep.com', 'Team':'Analytics Hadoop', 'ProductName':'SSM', 'BusinessUnit':'ITCORP', 'BackUp':'False', 'UseCase':'Outage_Prediction','Step':'last_run_dt Value'}
+
+  rCatgHistLoadLastRunDtParameterim:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/aep/analytics/hdp/${pEnvironment}/ppo/parms/last_run_dt_hist_im"   
+      Type: String
+      Value: "2023-04-01~2023-04-30"
+      Description: SSM Parameter for last_run_dt_hist_im.
+      Tags: {'Owner':'analytics_generation@aep.com', 'Team':'Analytics Hadoop', 'ProductName':'SSM', 'BusinessUnit':'ITCORP', 'BackUp':'False', 'UseCase':'Outage_Prediction','Step':'last_run_dt Value'}
+
+  rCatgHistLoadLastRunDtParameterpso:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/aep/analytics/hdp/${pEnvironment}/ppo/parms/last_run_dt_hist_pso"   
+      Type: String
+      Value: "2023-04-01~2023-04-30"
+      Description: SSM Parameter for last_run_dt_hist_pso.
+      Tags: {'Owner':'analytics_generation@aep.com', 'Team':'Analytics Hadoop', 'ProductName':'SSM', 'BusinessUnit':'ITCORP', 'BackUp':'False', 'UseCase':'Outage_Prediction','Step':'last_run_dt Value'}
+
+  rCatgHistLoadLastRunDtParameterswp:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/aep/analytics/hdp/${pEnvironment}/ppo/parms/last_run_dt_hist_swp"   
+      Type: String
+      Value: "2023-04-01~2023-04-30"
+      Description: SSM Parameter for last_run_dt_hist_swp.
+      Tags: {'Owner':'analytics_generation@aep.com', 'Team':'Analytics Hadoop', 'ProductName':'SSM', 'BusinessUnit':'ITCORP', 'BackUp':'False', 'UseCase':'Outage_Prediction','Step':'last_run_dt Value'}
+
+  rCatgHistLoadLastRunDtParametertx:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/aep/analytics/hdp/${pEnvironment}/ppo/parms/last_run_dt_hist_tx"   
+      Type: String
+      Value: "2023-04-01~2023-04-30"
+      Description: SSM Parameter for last_run_dt_hist_tx.
+      Tags: {'Owner':'analytics_generation@aep.com', 'Team':'Analytics Hadoop', 'ProductName':'SSM', 'BusinessUnit':'ITCORP', 'BackUp':'False', 'UseCase':'Outage_Prediction','Step':'last_run_dt Value'}
+   
+   ## Define outage Summ parameters
+  #  rOutageSummOpcoParameter:
+  #   Type: AWS::SSM::Parameter
+  #   Properties:
+  #     Name: !Sub "/aep/analytics/hdp/${pEnvironment}/ppo/parms/outage_summ_aep_opco"   
+  #     Type: String
+  #     Value: " "
+  #     Description: SSM Parameter for outage Summ OPCO.
+  #     Tags: {'Owner':'analytics_generation@aep.com', 'Team':'Analytics Hadoop', 'ProductName':'SSM', 'BusinessUnit':'ITCORP', 'BackUp':'False', 'UseCase':'Outage_Prediction','Step':'last_run_dt Value'}
+
+  #  rOutageSummEventDtFromParameter:
+  #   Type: AWS::SSM::Parameter
+  #   Properties:
+  #     Name: !Sub "/aep/analytics/hdp/${pEnvironment}/ppo/parms/outage_summ_aep_event_dt_from"   
+  #     Type: String
+  #     Value: " "
+  #     Description: SSM Parameter for outage Summ aep_event_dt_from.
+  #     Tags: {'Owner':'analytics_generation@aep.com', 'Team':'Analytics Hadoop', 'ProductName':'SSM', 'BusinessUnit':'ITCORP', 'BackUp':'False', 'UseCase':'Outage_Prediction','Step':'last_run_dt Value'}
+
+  #  rOutageSummEventDtToParameter:
+  #   Type: AWS::SSM::Parameter
+  #   Properties:
+  #     Name: !Sub "/aep/analytics/hdp/${pEnvironment}/ppo/parms/outage_summ_aep_event_dt_to"   
+  #     Type: String
+  #     Value: " "
+  #     Description: SSM Parameter for outage Summ aep_event_dt_to.
+  #     Tags: {'Owner':'analytics_generation@aep.com', 'Team':'Analytics Hadoop', 'ProductName':'SSM', 'BusinessUnit':'ITCORP', 'BackUp':'False', 'UseCase':'Outage_Prediction','Step':'last_run_dt Value'}
+
+  rOutageSummOpcoEventDtDictParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/aep/analytics/hdp/${pEnvironment}/ppo/parms/outg_summ_opco_event_dt_dict"   
+      Type: String
+      Value: " "
+      Description: SSM Parameter for outage Summ outg_summ_opco_event_dt_dict.
+      Tags: {'Owner':'analytics_generation@aep.com', 'Team':'Analytics Hadoop', 'ProductName':'SSM', 'BusinessUnit':'ITCORP', 'BackUp':'False', 'UseCase':'Outage_Prediction','Step':'last_run_dt Value'}
+
+
+  ## GLUE Job IAM Role
+  rGlueExecutionIAMRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: glue.amazonaws.com
+            Action: sts:AssumeRole
+      RoleName: !Sub "aep-dl-outage-pred-glue-execution-role-${pEnvironment}"
+      Policies:
+        - PolicyName: aep_dl_app_glue_policy_outage_pred_glue
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                  - "glue:BatchCreatePartition"
+                  - "glue:List*"
+                  - "glue:Get*"
+                  - "glue:CreatePartition"
+                  - "glue:Update*"
+                  - "glue:GetTableVersions"
+                  - "glue:GetTableVersion"
+                Effect: Allow
+                Resource:
+                  - !Sub "arn:aws:glue:*:${AWS::AccountId}:connection/*"
+                  - !Sub "arn:aws:glue:*:${AWS::AccountId}:catalog/*"
+                  - !Sub "arn:aws:glue:*:${AWS::AccountId}:catalog"
+                  - !Sub "arn:aws:glue:*:${AWS::AccountId}:database/meter_events"
+                  - !Sub "arn:aws:glue:*:${AWS::AccountId}:table/meter_events/*"
+                  - !Sub "arn:aws:glue:*:${AWS::AccountId}:database/stg_meterevents"
+                  - !Sub "arn:aws:glue:*:${AWS::AccountId}:table/stg_meterevents/*"
+                  - !Sub "arn:aws:glue:*:${AWS::AccountId}:tableVersion/*/*/*"
+
+              - Action:
+                  - "glue:Get*"
+                  - "glue:StartJobRun"
+                  - "glue:List*"
+                  - "glue:Start*"
+                  - "glue:Stop*"
+
+                Effect: Allow
+                Resource:
+                  - !Sub "arn:aws:glue:*:${AWS::AccountId}:database/default"
+                  - !Sub "arn:aws:glue:*:${AWS::AccountId}:table/default/*"     
+                  - !Sub "arn:aws:glue:*:${AWS::AccountId}:database/global_temp"
+                  - !Sub "arn:aws:glue:*:${AWS::AccountId}:table/global_temp/*"     
+
+        - PolicyName: aep_dl_app_glue_policy_outage_pred_log
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Effect: Allow
+                Resource:
+                  - !Sub "arn:aws:logs:*:*:/aws-glue/*"
+
+        - PolicyName: aep_dl_app_glue_policy_outage_pred_s3
+          PolicyDocument:
+            Statement:
+              - Action:
+                  - "s3:List*"
+                  - "s3:Get*"
+                  - "s3:InitiateReplication"
+                  - "s3:PutObject"
+                  - "s3:GetObject"
+                  - "s3:DeleteObject"
+                  - s3:RestoreObject
+                  - s3:AbortMultipartUpload
+                  - s3:Create*
+                  - s3:Put*
+
+                Effect: Allow
+                Resource:
+                  - !Sub "arn:aws:s3:::${pS3DataLogBucket}-${pEnvironment}"
+                  - !Sub "arn:aws:s3:::${pS3DataLogBucket}-${pEnvironment}/*"
+                  - !Sub "arn:aws:s3:::${pS3DataLogBucket}-${pEnvironment}/glueetl/temporary/*"                  
+                  - !Sub "arn:aws:s3:::${pS3DataLogBucket}-${pEnvironment}/tmp/*"
+                  - !Sub "arn:aws:s3:::${pS3DataLogBucket}-${pEnvironment}glueetl/sparkHistoryLogs/*"
+
+                  - !Sub "arn:aws:s3:::${pS3DataConsumeBucket}-${pEnvironment}" 
+                  - !Sub "arn:aws:s3:::${pS3DataConsumeBucket}-${pEnvironment}/util"
+                  - !Sub "arn:aws:s3:::${pS3DataConsumeBucket}-${pEnvironment}/util/*"  
+                  - !Sub "arn:aws:s3:::${pS3DataConsumeBucket}-${pEnvironment}/util/events_summary" 
+                  - !Sub "arn:aws:s3:::${pS3DataConsumeBucket}-${pEnvironment}/util/events_summary/*" 
+
+                  - !Sub "arn:aws:s3:::${pS3DataConsumeBucket}-${pEnvironment}/util/event_summ_regex_setup/" 
+                  - !Sub "arn:aws:s3:::${pS3DataConsumeBucket}-${pEnvironment}/util/event_summ_regex_setup/*" 
+
+                  - !Sub "arn:aws:s3:::${pS3DataWorkBucket}-${pEnvironment}"               
+                  - !Sub "arn:aws:s3:::${pS3DataWorkBucket}-${pEnvironment}/util/events/uiq/*" 
+                  - !Sub "arn:aws:s3:::${pS3DataWorkBucket}-${pEnvironment}/util/events/uiq/end_device_event_catg_stg" 
+                  - !Sub "arn:aws:s3:::${pS3DataWorkBucket}-${pEnvironment}/util/events/uiq/end_device_event_catg_stg/*"
+                  - !Sub "arn:aws:s3:::${pS3DataWorkBucket}-${pEnvironment}/util/events/uiq/end_device_event_incr" 
+                  - !Sub "arn:aws:s3:::${pS3DataWorkBucket}-${pEnvironment}/util/events/uiq/end_device_event_incr/*"
+                  - !Sub "arn:aws:s3:::${pS3DataWorkBucket}-${pEnvironment}/util/events/uiq/end_device_event_errors/"
+                  - !Sub "arn:aws:s3:::${pS3DataWorkBucket}-${pEnvironment}/util/events/uiq/end_device_event_errors/*"
+
+                  - !Sub "arn:aws:s3:::${pS3DataWorkBucket}-${pEnvironment}/raw"
+                  - !Sub "arn:aws:s3:::${pS3DataWorkBucket}-${pEnvironment}/raw/*"
+
+                  - !Sub "arn:aws:s3:::${pS3DataWorkBucket}-${pEnvironment}/raw/dovs_eems/"
+                  - !Sub "arn:aws:s3:::${pS3DataWorkBucket}-${pEnvironment}/raw/dovs_eems/*"
+
+                  - !Sub "arn:aws:s3:::${pS3DataWorkBucket}-${pEnvironment}/raw/dovs_eems/dovs_outage_fact_stg/"
+                  - !Sub "arn:aws:s3:::${pS3DataWorkBucket}-${pEnvironment}/raw/dovs_eems/dovs_outage_fact_stg/*"
+
+                  - !Sub "arn:aws:s3:::${pS3DataWorkBucket}-${pEnvironment}/raw/dovs_eems/dovs_outage_premise_stg/"
+                  - !Sub "arn:aws:s3:::${pS3DataWorkBucket}-${pEnvironment}/raw/dovs_eems/dovs_outage_premise_stg/*"
+
+                  - !Sub "arn:aws:s3:::${pS3DataWorkBucket}-${pEnvironment}/raw/dovs_eems/eems_outage_info_stg/"
+                  - !Sub "arn:aws:s3:::${pS3DataWorkBucket}-${pEnvironment}/raw/dovs_eems/eems_outage_info_stg/*"
+
+              - Action:
+                  - "s3:Get*"
+                  - "s3:List*"
+                Effect: Allow
+                Resource:
+                  - !Sub "arn:aws:s3:::${pGlueETLCodeBucket}-${pEnvironment}"
+                  - !Sub "arn:aws:s3:::${pGlueETLCodeBucket}-${pEnvironment}/hdpapp/ppo/glueetl/"
+                  - !Sub "arn:aws:s3:::${pGlueETLCodeBucket}-${pEnvironment}/hdpapp/ppo/glueetl/*"
+
+                  - !Sub "arn:aws:s3:::${pS3DataConsumeBucket}-${pEnvironment}"
+                  - !Sub "arn:aws:s3:::${pS3DataConsumeBucket}-${pEnvironment}/util/events/uiq/end_device_event/*"
+
+                  - !Sub "arn:aws:s3:::${pS3DataTransformBucket}-${pEnvironment}"
+                  - !Sub "arn:aws:s3:::${pS3DataTransformBucket}-${pEnvironment}/util/ods/meter_premise/*"
+
+                  # - !Sub "arn:aws:s3:::${pS3DataConsumeBucket}-prod"  ## prod to be removed
+                  # - !Sub "arn:aws:s3:::${pS3DataConsumeBucket}-prod/util/events/uiq/end_device_event/*" ## prod to be removed
+
+                  # - !Sub "arn:aws:s3:::${pS3DataTransformBucket}-prod" ## prod to be removed
+                  # - !Sub "arn:aws:s3:::${pS3DataTransformBucket}-prod/util/ods/meter_premise/*" ## prod to be removed
+                  # - !Sub "arn:aws:s3:::${pS3DataWorkBucket}-prod"  ## prod to be removed
+                  # - !Sub "arn:aws:s3:::${pS3DataWorkBucket}-prod/util/events/uiq/end_device_event_incr"   ## prod to be removed
+                  # - !Sub "arn:aws:s3:::${pS3DataWorkBucket}-prod/util/events/uiq/end_device_event_incr/*" ## prod to be removed
+
+        - PolicyName: aep_dl_app_glue_policy_outage_pred_kms
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                  - "kms:Decrypt"
+                  - "kms:Encrypt"
+                  - "kms:GenerateDataKey"
+                  - "kms:Get*"
+                  - "kms:List*"
+                  - "kms:DescribeKey*"
+                  - "kms:DescribeCustomKeyStores"
+
+                Effect: Allow
+                Resource:
+                  - !ImportValue s3KMSKeyArn
+                  - !ImportValue smKMSKeyArn
+
+                  # - "arn:aws:kms:us-east-1:292805373755:key/a3023ed0-948d-4af9-bc91-f6fa16cda59f" ## prod to be removed
+                  # - "arn:aws:kms:us-east-1:889415020100:key/5936e2d8-4b42-4f25-a643-30044d1a1142" ## prod to be removed
+
+        - PolicyName: aep_dl_app_glue_policy_outage_pred_ec2
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                  - "ec2:GetPasswordData"
+                  - "ec2:CreateNetworkInterface"
+                  - "ec2:GetLaunchTemplateData"
+                  - "ec2:CreateTags"
+                  - "ec2:GetInstanceUefiData"
+                  - "ec2:DescribeInstanceAttribute"
+                  - "ec2:ModifyNetworkInterfaceAttribute"
+                  - "ec2:AttachNetworkInterface"
+                  - "ec2:GetConsoleScreenshot"
+                  - "ec2:GetConsoleOutput"
+                  - "ec2:CreateTags"
+                  - "ec2:DescribeSubnets"
+                  - "ec2:DescribeVpcs"
+                  - "ec2:DescribeAvailabilityZones"
+                  - "ec2:DescribeNetworkAcls"
+                  - "ec2:DescribeRouteTables"
+                  - "ec2:DescribeSecurityGroups"
+                  - "ec2:DescribeVpcEndpoints"          
+                  - "ec2:CreateNetworkInterface"
+                  - "ec2:DeleteNetworkInterface"    
+        
+                Effect: Allow
+                Resource: 
+                  - !Sub "arn:aws:ec2:*:${AWS::AccountId}:instance/*"
+                  - !Sub "arn:aws:ec2:*:${AWS::AccountId}:network-interface/*"
+                  - !Sub "arn:aws:ec2:*:${AWS::AccountId}:elastic-ip/*"
+                  - !Sub "arn:aws:ec2:*:${AWS::AccountId}:security-group/*"
+                  - '*'
+
+        - PolicyName: aep_dl_app_glue_policy_outage_pred_srctmgr
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                  - "secretsmanager:GetResourcePolicy"
+                  - "secretsmanager:GetSecretValue"
+                  - "secretsmanager:DescribeSecret"                  
+                  - "secretsmanager:ListSecretVersionIds"
+                  - "secretsmanager:GetRandomPassword"
+                  - "secretsmanager:ListSecrets"
+                  - "secretsmanager:UpdateSecretVersionStage"
+                Effect: Allow
+                Resource:
+                  - !Sub "arn:aws:secretsmanager:us-east-1:${AWS::AccountId}:secret:/aep/datalake/${pEnvironment}/mv90/db/utl_login-??????"
+
+        - PolicyName: aep_dl_app_glue_policy_outage_pred_ssm_param
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                  - ssm:List*
+                  - ssm:Update*
+                  - ssm:Get*
+                  - ssm:Describe*
+                  - ssm:Put*
+                  - ssm:ModifyDocumentPermission
+                Effect: Allow
+                Resource:
+                  - !Sub "arn:aws:ssm:*:${AWS::AccountId}:parameter/aep/analytics/hdp/${pEnvironment}/ppo/*"
+                  - !Sub "arn:aws:ssm:*:${AWS::AccountId}:parameter/aep/analytics/hdp/${pEnvironment}/ppo/parms/*"
+
+        - PolicyName: aep_dl_app_glue_policy_outage_pred_sns
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                - "sns:Publish"
+                - "sns:List*"
+                - "sns:Get*"
+                Effect: Allow
+                Resource: 
+                  - !Sub "arn:aws:sns:us-east-1:${AWS::AccountId}:${pSNSTopicName}-success-${pEnvironment}"
+                  - !Sub "arn:aws:sns:us-east-1:${AWS::AccountId}:${pSNSTopicName}-failure-${pEnvironment}"
+
+        - PolicyName: aep_dl_app_glue_policy_outage_pred_stepfunc
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                  - "states:StartExecution"
+                  - "states:StopExecution"
+                  - "states:SendTaskSuccess"
+                  - "states:SendTaskFailure"
+                  - "states:StartSyncExecution"
+                  - "states:TagResource"
+                  - "states:DescribeActivity"
+                  - "states:DescribeExecution"
+                  - "states:DescribeStateMachine"
+                  - "states:DescribeStateMachineForExecution"
+                  - "states:GetActivityTask"
+                  - "states:GetExecutionHistory"
+                  - "states:ListActivities"
+                  - "states:ListExecutions"
+                  - "states:ListMapRuns"
+                  - "states:ListStateMachines"
+                  - "states:ListTagsForResource"
+                  - "states:SendTaskHeartbeat"
+                  - "states:UntagResource"
+                  - "states:UpdateMapRun"
+                  - "states:UpdateStateMachine"
+                  - "states:Create*"
+                  - "states:Describe*"
+
+                Effect: Allow
+                Resource: 
+                  - !Sub "arn:aws:states:*:${AWS::AccountId}:stateMachine:*"
+                ##'*'
+
+        - PolicyName: aep_dl_app_glue_policy_outage_pred_eventscheduler
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                  - "scheduler:List*"
+                  - "scheduler:Create*"
+                  - "scheduler:Get*"
+                  - "scheduler:Delete*"
+                  - "scheduler:Update*"
+
+                Effect: Allow
+                Resource: 
+                  - !Sub "arn:aws:scheduler:us-east-1:${AWS::AccountId}:schedule/default/*"
+                  ##'*'        
+
+      PermissionsBoundary: !Sub "arn:aws:iam::${AWS::AccountId}:policy/AEPCloudBoundary"
+
+  ## Glue ETL Jobs
+  # ## Event Catg Incr
+  rGlueETLJobEventCatgIncr:
+    Type: AWS::Glue::Job
+    Properties:
+      Description: "Event Catg Incr GlueETL"
+      Name: !Sub "${pGlueETLJobNameEventCatgIncr}"
+      Tags: {"Owner": "Analytics Hadoop", "Team": "Analytics Hadoop", "ProductName": "glueetl", "BusinessUnit": "ITCORP", "BackUp": "False", "UseCase": "outage-prediction",'Step':'EventCatgIncr Job Trigger'}  # step to be dynamic
+      GlueVersion: "4.0"
+      WorkerType: "G.2X"
+      NumberOfWorkers: 5
+      ExecutionClass: "FLEX"
+      ExecutionProperty:
+        MaxConcurrentRuns: 4
+      MaxRetries: 0
+      Role: !GetAtt rGlueExecutionIAMRole.Arn
+      Timeout: 180
+      DefaultArguments:        
+        --class: "GlueApp"
+        --enable-auto-scaling: "true"
+        --write-shuffle-files-to-s3: "true"
+        --write-shuffle-spills-to-s3: "true"
+        --enable-job-insights: "true"
+        --enable-continuous-cloudwatch-log: "true"
+        --enable-spark-ui: "true"
+        --enable-glue-datacatalog: "true"
+        --additional-python-modules: "pyarrow==10.0.0,awswrangler"
+        --TempDir: !Sub "s3://${pS3DataLogBucket}-${pEnvironment}/glueetl/temporary/"
+        --spark-event-logs-path: !Sub "s3://${pS3DataLogBucket}-${pEnvironment}/glueetl/sparkHistoryLogs/"
+        --AWS_ENV: !Sub "${pEnvironment}"
+        --S3_DATA_TRANSFORM: !Sub "s3://${pS3DataTransformBucket}"
+        --S3_DATA_WORK: !Sub "s3://${pS3DataWorkBucket}"
+        --S3_DATA_CONSUME: !Sub "s3://${pS3DataConsumeBucket}"
+        --SSM_LAST_RUN_DT_NAME : !Sub "/aep/analytics/hdp/${pEnvironment}/ppo/parms/last_run_dt_incr"
+        --VAR_SNS_TOPIC: !Sub "arn:aws:sns:us-east-1:${AWS::AccountId}:${pSNSTopicName}-success-${pEnvironment},arn:aws:sns:us-east-1:${AWS::AccountId}:${pSNSTopicName}-failure-${pEnvironment}"
+        
+      Command:
+        Name: "glueetl"
+        PythonVersion: "3"
+        ScriptLocation: !Sub "s3://${pGlueETLCodeBucket}-${pEnvironment}/hdpapp/ppo/glueetl/end-device-event-catg-incr-load.py"
+
+  ## Glue ETL Trigger
+  rGlueETLJobEventCatgIncrTrigger:
+    Type: AWS::Glue::Trigger
+    DependsOn: 
+      - rGlueETLJobEventCatgIncr
+    Properties:
+      Description: !Sub "Trigger for ${pGlueETLJobNameEventCatgIncr}"
+      Name: !Sub "Trigger-${pGlueETLJobNameEventCatgIncr}"
+      Type: "SCHEDULED"
+      Schedule: "cron(10 * * * ? *)"  ### every Hour 12th minute
+      # State : "DEACTIVATED"
+      Actions: 
+        - JobName: !Sub "${pGlueETLJobNameEventCatgIncr}"
+      # StartOnCreation: true
+      StartOnCreation: false
+      Tags: {"Owner": "Analytics Hadoop", "Team": "Analytics Hadoop", "ProductName": "glueetl", "BusinessUnit": "ITCORP", "BackUp": "False", "UseCase": "outage-prediction",'Step':'EventCatgIncr Job Trigger'}
+
+  rGlueETLJobEventCatgHist:
+    Type: AWS::Glue::Job
+    Properties:
+      Description: "Event Catg Incr GlueETL"
+      Name: !Sub "${pGlueETLJobNameEventCatgHist}"
+      Tags: {"Owner": "Analytics Hadoop", "Team": "Analytics Hadoop", "ProductName": "glueetl", "BusinessUnit": "ITCORP", "BackUp": "False", "UseCase": "outage-prediction"}
+      GlueVersion: "4.0"
+      WorkerType: "G.2X"
+      NumberOfWorkers: 5
+      ExecutionClass: "FLEX"
+      ExecutionProperty:
+        MaxConcurrentRuns: 7
+      MaxRetries: 0
+      Role: !GetAtt rGlueExecutionIAMRole.Arn
+      Timeout: 180
+      DefaultArguments:        
+        --class: "GlueApp"
+        --enable-auto-scaling: "true"
+        --write-shuffle-files-to-s3: "true"
+        --write-shuffle-spills-to-s3: "true"
+        --enable-job-insights: "true"
+        --enable-continuous-cloudwatch-log: "true"
+        --enable-spark-ui: "true"
+        --enable-glue-datacatalog: "true"
+        --additional-python-modules: "pyarrow==10.0.0,awswrangler"
+        --TempDir: !Sub "s3://${pS3DataLogBucket}-${pEnvironment}/glueetl/temporary/"
+        --spark-event-logs-path: !Sub "s3://${pS3DataLogBucket}-${pEnvironment}/glueetl/sparkHistoryLogs/"
+        --AWS_ENV: !Sub "${pEnvironment}"
+        --VAR_OPCO: "pso"
+        --SSM_LAST_RUN_DT_NAME : !Sub "/aep/analytics/hdp/${pEnvironment}/ppo/parms/last_run_dt_hist"
+        --S3_DATA_TRANSFORM: !Sub "s3://${pS3DataTransformBucket}"
+        --S3_DATA_WORK: !Sub "s3://${pS3DataWorkBucket}"
+        --S3_DATA_CONSUME: !Sub "s3://${pS3DataConsumeBucket}"
+        --VAR_SNS_TOPIC: !Sub "arn:aws:sns:us-east-1:${AWS::AccountId}:${pSNSTopicName}-success-${pEnvironment},arn:aws:sns:us-east-1:${AWS::AccountId}:${pSNSTopicName}-failure-${pEnvironment}"
+        
+      Command:
+        Name: "glueetl"
+        PythonVersion: "3"
+        ScriptLocation: !Sub "s3://${pGlueETLCodeBucket}-${pEnvironment}/hdpapp/ppo/glueetl/end-device-event-catg-hist-load.py"
+
+  rGlueETLJobOutgSumm:
+    Type: AWS::Glue::Job
+    Properties:
+      Description: "Meter Event Outage Summ GlueETL"
+      Name: !Sub "${pGlueETLJobNameOutageSumm}"
+      Tags: {"Owner": "Analytics Hadoop", "Team": "Analytics Hadoop", "ProductName": "glueetl", "BusinessUnit": "ITCORP", "BackUp": "False", "UseCase": "outage-prediction"}
+      GlueVersion: "4.0"
+      WorkerType: "G.2X"
+      NumberOfWorkers: 5
+      ExecutionClass: "FLEX"
+      ExecutionProperty:
+        MaxConcurrentRuns: 7
+      MaxRetries: 0
+      Role: !GetAtt rGlueExecutionIAMRole.Arn
+      Timeout: 180
+      DefaultArguments:        
+        --class: "GlueApp"
+        --enable-auto-scaling: "true"
+        --write-shuffle-files-to-s3: "true"
+        --write-shuffle-spills-to-s3: "true"
+        --enable-job-insights: "true"
+        --enable-continuous-cloudwatch-log: "true"
+        --enable-spark-ui: "true"
+        --enable-glue-datacatalog: "true"
+        --additional-python-modules: "pyarrow==10.0.0,awswrangler"
+        --TempDir: !Sub "s3://${pS3DataLogBucket}-${pEnvironment}/glueetl/temporary/"
+        --spark-event-logs-path: !Sub "s3://${pS3DataLogBucket}-${pEnvironment}/glueetl/sparkHistoryLogs/"
+        --AWS_ENV: !Sub "${pEnvironment}"
+        --VAR_OPCO: !Sub "/aep/analytics/hdp/${pEnvironment}/ppo/parms/outage_summ_aep_opco"
+        --VAR_AEP_EVENT_DT_FROM : !Sub "/aep/analytics/hdp/${pEnvironment}/ppo/parms/outage_summ_aep_event_dt_from"
+        --VAR_AEP_EVENT_DT_TO : !Sub "/aep/analytics/hdp/${pEnvironment}/ppo/parms/outage_summ_aep_event_dt_to"
+        --S3_DATA_WORK: !Sub "s3://${pS3DataWorkBucket}"
+        --S3_DATA_CONSUME: !Sub "s3://${pS3DataConsumeBucket}"
+        --VAR_SNS_TOPIC: !Sub "arn:aws:sns:us-east-1:${AWS::AccountId}:${pSNSTopicName}-success-${pEnvironment},arn:aws:sns:us-east-1:${AWS::AccountId}:${pSNSTopicName}-failure-${pEnvironment}"      
+      Command:
+        Name: "glueetl"
+        PythonVersion: "3"
+        ScriptLocation: !Sub "s3://${pGlueETLCodeBucket}-${pEnvironment}/hdpapp/ppo/glueetl/meter-event-outage-summ.py"
+
+
+#Step function
+  rOutagePredStateMachine:
+    Type: 'AWS::StepFunctions::StateMachine'
+    Properties:
+      StateMachineName: !Sub "${pStepFunctionName}"
+      StateMachineType: STANDARD
+      Role: !GetAtt rGlueExecutionIAMRole.Arn
+      TracingConfiguration:
+        Enabled: true
+      Tags: 
+        - Key: Owner
+          Value: 'analytics_hadoop@aep.com'
+        - Key: Team
+          Value: 'Analytics Hadoop'
+        - Key: ProductName
+          Value: 'Step Function'
+        - Key: BusinessUnit
+          Value: 'ITCORP'
+        - Key: BackUp
+          Value: 'False'
+        - Key: UseCase
+          Value: 'AMI analytic Model' 
+        - Key: Step
+          Value: 'Outage-Prediction'          
+      DefinitionString: !Sub |
+        {
+        "Comment": "outage-prediction Step Function",
+        "StartAt": "aep-sf3-end-device-event-catg-incr-load",
+        "States": {
+          "aep-sf3-end-device-event-catg-incr-load": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::glue:startJobRun.sync",
+            "Parameters": {
+              "JobName": "end-device-event-catg-incr-load-new",
+              },
+            "Retry": [
+              {
+                "ErrorEquals": [
+                  "Glue.AWSGlueException"
+                ],
+                "IntervalSeconds": 300,
+                "MaxAttempts": 2,
+                "BackoffRate": 2
+              }
+            ],
+            "Next": "aep-sf3-meter-event-outage-summ"
+          },
+          "aep-sf3-meter-event-outage-summ": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::glue:startJobRun",
+            "Parameters": {
+              "JobName": "meter-event-outage-summ-new",
+            },
+            "End": true
+          }
+        }
+        }
+
+  rOutagePredStepFunctionScheduler:
+    Type: AWS::Scheduler::Schedule
+    Properties: 
+      Description: "Daily Schedluer for Outage Prediction"
+      FlexibleTimeWindow: 
+       #MaximumWindowInMinutes: 15
+       Mode: "OFF"
+      Name: !Sub "${pEventschedulerName}"
+      ScheduleExpression: cron(10 * * * ? *)
+      ScheduleExpressionTimezone: "US/Eastern"
+      State: "DISABLED"
+      Target: 
+        Arn: !GetAtt rOutagePredStateMachine.Arn
+        # Input: !Sub '{"VAR_OPCO":"pso", "JOB_NAME":"${pGlueETLJobName}"}'
+        RetryPolicy:
+          MaximumEventAgeInSeconds: 600
+          MaximumRetryAttempts: 2
+        Role: !GetAtt rGlueExecutionIAMRole.Arn
+
+## Define Resource Definitions to be built
+Outputs:
+  oGlueETLArn:
+    Description: Glue Job Name (Event Catg Incr Load)
+    Value: !Ref rGlueETLJobEventCatgIncr
+
+  oGlueETLArn:
+    Description: Glue Job Name (Event Catg Hist Load)
+    Value: !Ref rGlueETLJobEventCatgHist
+
+
+## Complete

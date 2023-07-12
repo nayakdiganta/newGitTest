@@ -1,0 +1,857 @@
+def get_std_patterns_to_replace_by_typeid_EXPLICIT():
+    r"""
+    Returns the standard patterns_to_replace_by_typeid.
+    Function exists essentially to keep reduce_end_event_reasons_in_df from being too cluttered 
+    """
+    #-------------------------
+    return {
+        #-------------------------
+        # Examples
+        # 'Power Loss cleared for meter 00:13:50:05:ff:0d:dd:17'
+        '3.2.0.28':    [
+            #-----
+            (r'((?:\s*occurred\s*)?(?:\s*(?:for|on)?\s*(?:meter)?)?\s+(?:[0-9a-zA-Z]+)(?:\:[0-9a-zA-Z]+)+[\s*\.]*)', '')
+            #-----
+        ],  
+        
+        #-------------------------
+        # Examples
+        # 'Power loss detected on meter 00:13:50:05:ff:0d:dd:17'
+        '3.2.0.85':    [
+            #-----
+            (r'((?:\s*occurred\s*)?(?:\s*(?:for|on)?\s*(?:meter)?)?\s+(?:[0-9a-zA-Z]+)(?:\:[0-9a-zA-Z]+)+[\s*\.]*)', '')
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples
+        # 'Low Battery cleared for meter 00:13:50:02:00:0a:9e:1e.'
+        '3.2.22.28':    [
+            #-----
+            (r'((?:\s*occurred\s*)?(?:\s*(?:for|on)?\s*(?:meter)?)?\s+(?:[0-9a-zA-Z]+)(?:\:[0-9a-zA-Z]+)+[\s*\.]*)', '')
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples
+        # 'Low Battery (C1219 Table 3) occurred for meter 00:13:50:02:00:0a:9e:1e.'
+        '3.2.22.150':    [
+            #-----
+            (r'((?:\s*occurred\s*)?(?:\s*(?:for|on)?\s*(?:meter)?)?\s+(?:[0-9a-zA-Z]+)(?:\:[0-9a-zA-Z]+)+[\s*\.]*)', '')
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples
+        # 'Test Mode Started occurred for meter 00:13:50:05:ff:1d:2d:4a.'
+        # 'Meter event Test Mode Started  Time event occurred on meter = 01/20/2020 12:56:50  Sequence number = 56  User id = 1  Event argument = 00-00'
+        # SEEMS RARE, BUT HAVE SEEN:
+        # 'Meter is currently in test mode.'
+        '3.7.19.242':    [
+            #-----
+            (r'(Test Mode Started)(?:(?:\s*occurred\s*)?(?:\s*(?:for|on)?\s*(?:meter)?)?\s+(?:[0-9a-zA-Z]+)(?:\:[0-9a-zA-Z]+)+\.?)', r'\1'), 
+            #-----
+            (r'(Meter event Test Mode Started)\s*Time event occurred on meter = .* Sequence number = .* User id = .*  Event argument = .*', r'\1'), 
+            #-----
+            (r'(Meter event Test Mode Started).*', 'Test Mode Started'), 
+            #-----
+            (r'(Meter is currently in test mode)[\s\.]*', r'\1')
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples
+        # 'Test Mode Stopped occurred for meter 00:13:50:03:ff:06:20:96.'
+        # 'Meter event Test Mode Stopped  Time event occurred on meter = 01/02/2020 08:25:04  Sequence number = 573  User id = 1  Event argument = 00-00'
+        '3.7.19.243':    [
+            #-----
+            (r'(Test Mode Stopped)(?:(?:\s*occurred\s*)?(?:\s*(?:for|on)?\s*(?:meter)?)?\s+(?:[0-9a-zA-Z]+)(?:\:[0-9a-zA-Z]+)+\.?)', r'\1'), 
+            #-----
+            (r'(Meter event Test Mode Stopped)\s*Time event occurred on meter = .* Sequence number = .* User id = .*  Event argument = .*', r'\1'), 
+            #-----
+            (r'(Meter event Test Mode Stopped).*', 'Test Mode Stopped')
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples
+        # 'NIC operating on backup battery: 00:13:50:ff:fe:70:96:ac, Reboot Count: 6, NIC timestamp: 2021-01-14T10:17:54.000-05:00, Received timestamp: 2021-01-14T10:17:55.728-05:00'
+        '3.7.22.4':    [
+            #-----
+            (r'(NIC operating on backup battery)\:(\s+(?:[0-9a-zA-Z]+)(?:\:[0-9a-zA-Z]+)+\.?), Reboot Count: .*, NIC timestamp: .*, Received timestamp: .*', r'\1'), 
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples:
+        # All seem to be: 'NIC backup battery inactive'
+        # So, don't need to run any regex, but should still so no flags raised
+        '3.7.22.19':    [
+            #-----
+            (r'(NIC backup battery inactive).*', r'\1')
+            #-----
+        ],      
+        
+        #-------------------------
+        # Examples
+        # 'Demand Reset occurred for meter 00:13:50:05:ff:18:b3:c1.'
+        '3.8.0.215':    [
+            #-----
+            (r'((?:\s*occurred\s*)?(?:\s*(?:for|on)?\s*(?:meter)?)?\s+(?:[0-9a-zA-Z]+)(?:\:[0-9a-zA-Z]+)+[\s*\.]*)', '')
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples
+        # 'Meter Program Seal mismatch for Device [Device ID, MAC Id] = [1ND785727916NMD06, 00:13:50:05:ff:1d:16:96] - program seal = 0bda0569c8e6ad375375eaa177034d3f61a80478 vs. UIQ program seal = e2dbe1ccbeef1f2df38adffeeafdb86fbd8fb006 at 2021-01-08T06:16:49.116-05:00.'
+        '3.9.83.159':    [
+            #-----
+            (r'(Meter Program Seal mismatch for Device)\s*\[Device ID, MAC Id\]\s*=\s*.*', r'\1')
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples:
+        # 'Requested operation JOB_OP_TYPE_ARB_METER_COMMAND could not be applied to the given device type and firmware version. Device: 00:13:50:05:ff:2d:ff:34, DeviceType: DID_SUBTYPE_I210CRD_HAN, Firmware Version: 3.12.5c'
+        '3.11.63.161':  [
+            #-----
+            # Below, Device sometimes blank, sometime MAC-esque
+            (r'(Requested operation)\s*(.*)\s*(could not be applied) to the given device type and firmware version.\s*Device\:?(?:\s+(?:[0-9a-zA-Z]+)(?:\:[0-9a-zA-Z]+)+)?,\s*DeviceType\:?.*,\s*Firmware Version\:?.*', r'\1 \3: \2')
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples
+        # 'Meter detected a Tamper Attempt.'
+        # 'Meter event Tamper Attempt Suspected  Time event occurred on meter = 01/10/2020 10:03:37  Sequence number = 1189  User id = 0  Event argument = 00-00'
+        '3.12.0.257':   [
+            #-----
+            (r'(Meter event Tamper Attempt Suspected)\s*Time event occurred on meter = .* Sequence number = .* User id = .*  Event argument = .*', r'\1'), 
+            #-----
+            (r'(Meter event Tamper Attempt Suspected).*', r'\1'), #Fail proof, in case time, sequence, etc., not found 
+            #-----
+            (r'(Meter detected a Tamper Attempt).*', 'Meter event Tamper Attempt Suspected'), 
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples:
+        # 'Tamper (Meter Inversion) detected on meter 00:13:50:05:ff:27:3f:a0.'
+        '3.12.17.257':  [
+            #-----
+            (r'((?:\s*occurred\s*)?(?:\s*(?:for|on)?\s*(?:meter)?)?\s+(?:[0-9a-zA-Z]+)(?:\:[0-9a-zA-Z]+)+)\.?', '') 
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples:
+        # 'Diag1 Condition cleared for meter 00:13:50:05:ff:04:55:a1.'
+        # SEEMS RARE, BUT HAVE SEEN:
+        # Reverse energy cleared for meter 00:13:50:05:ff:0d:dd:17.
+        '3.12.48.28':    [
+            #-----
+            (r'((?:\s*occurred\s*)?(?:\s*(?:for|on)?\s*(?:meter)?)?\s+(?:[0-9a-zA-Z]+)(?:\:[0-9a-zA-Z]+)+[\s*\.]*)', '')
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples:
+        # 'Diag1: Polarity, Cross Phase, Reverse Energy Flow occurred for meter 00:13:50:03:00:34:b7:e9. Angle out of tolerance [Voltage - Phase  B].'
+        # 'KV2c meter event Polarity, Cross Phase, Reverse Energy Flow Diagnostic flags:Phase A Current'
+        # 'Service disconnect operation occurred with status: Close operation started'
+        '3.12.48.219':  [
+            #-----
+            (r'(Diag1: Polarity, Cross Phase, Reverse Energy Flow)(?:(?:\s*occurred\s*)?(?:\s*(?:for|on)?\s*(?:meter)?)?\s+(?:[0-9a-zA-Z]+)(?:\:[0-9a-zA-Z]+)+\.?)\s*(Angle out of tolerance) \[.*\]', r'\1: \2'), 
+            #-----
+            (r'(KV2c meter event Polarity, Cross Phase, Reverse Energy Flow) Diagnostic flags:.*', r'\1'), 
+            #-----
+            (r'(Service disconnect operation occurred with status:) (Open|Close) operation (started|succeeded)', r'\1 \2 \3'), 
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples
+        # 'Cleared: Meter00:13:50:05:ff:07:88:4b, cleared tamper detection (C1219 Table 3)'
+        '3.12.93.28': [
+            #-----
+            (r'(Cleared: Meter)(?:\s*(?:[0-9a-zA-Z]+)(?:\:[0-9a-zA-Z]+)+\.?), (cleared tamper detection.*)', r'\1 \2'), 
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples:
+        # 'Meter event Reverse Rotation Detected  Time event occurred on meter = 01/28/2020 15:31:34  Sequence number = 854  User id = 0  Event argument = 00-00'
+        # 'Meter detected a Reverse Rotation.'
+        # 'Meter 00:13:50:05:ff:0b:ae:84, detected tampering (C1219 Table 3)'
+        # SEEMS RARE, BUT HAVE SEEN:
+        # Meter event Demand Reset Occurred  Time event occurred on meter = 10/25/2020 10:07:33  Sequence number = 1256  User id = 1  Event argument = 00-00
+        '3.12.93.219':    [
+            #-----
+            (r'(Meter)(?:\s+(?:[0-9a-zA-Z]+)(?:\:[0-9a-zA-Z]+)+[\.,]?)\s*(detected tampering\s*(?:\(.*\))?\s*)', r'\1 \2'), 
+            #-----
+            (r'(Meter event (?:Reverse Rotation Detected|Demand Reset Occurred))\s*Time event occurred on meter\s*=.*\s*Sequence number\s*=.*\s*User id\s*=.*\s*Event argument\s*=.*', r'\1'),
+            #-----
+            (r'(Meter event Reverse Rotation Detected).*', r'\1'), #Fail proof, in case time, sequence, etc., not found 
+            #-----
+            (r'(Meter detected a Reverse Rotation).*', 'Meter event Reverse Rotation Detected'), 
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples:
+        # 'A NET_MGMT command was sent from fdc9:ccbe:52c0:cbc0:250:56ff:feb5:91c7 with a key that has insufficient privileges to execute it. ID: 53 READ SUBID: 65535 ASSOC_ID: 8448'
+        # 'A NET_MGMT command was sent from fdc9:ccbe:52c0:cbc0:a6ba:99ff:fe12:1b0e with a key that has insufficient privileges to execute it. ID: 207 WRITE SUBID: 65535 ASSOC_ID: 768'
+        '3.12.136.38':  [
+            #-----
+            # BELOW, ID seemed meter-specific (or, at least, not general), as READ/WRITE SUBID and ASSOC_ID seem to only take on a few different values
+            # Therefore, group 3, for ID, is not included in output
+            (r'A?\s+?(.*command was sent) from(?:\s+(?:[0-9a-zA-Z]+)(?:\:[0-9a-zA-Z]+)+)\s*(with a key that has insufficient privileges) to execute it.*(ID:\s*[0-9]+)\s*((?:READ|WRITE)\s*SUBID:\s*[0-9]+)\s*(ASSOC_ID:\s*[0-9]+).*', r'\1 \2: \4 \5'), 
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples:
+        # 'NET_MGMT command failed consecutively for 1 times for fd37:ec90:20c2:5c58:250:56ff:feb5:1010. WRITE'
+        # 'Secure association operation failed consecutively for 1 times for fdc9:ccbe:52c0:d3a0:250:56ff:feb5:ec3c. 16270'
+        # 'failed consecutively for 1 times for 0:0:0:0:0:0:0:0.'
+        # 'N/A failed consecutively for 1 times for 0:0:0:0:0:0:0:0. N/A'
+        '3.12.136.85':  [
+            #-----
+            (r'(.*) failed consecutively for [0-9]+ times?(?:(?:\s*(?:for|on)?\s*(?:meter)?)?\s+(?:[0-9a-zA-Z]+)(?:\:[0-9a-zA-Z]+)+\.?).*', r'\1 failed consecutively for 1 or more times'), 
+            #-----
+            (r'failed consecutively for [0-9]+ times? for 0:0:0:0:0:0:0:0.', 'N/A failed consecutively for 1 or more times'), 
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples:
+        # 'Meter detected a RAM failure.'
+        # So, don't need to run any regex, but should still so no flags raised
+        '3.18.1.199':    [
+            #-----
+            (r'(Meter detected a RAM failure).*', r'\1')
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples:
+        # All seem to be: 'Meter detected a ROM failure.'
+        # So, don't need to run any regex, but should still so no flags raised
+        '3.18.1.220':    [
+            #-----
+            (r'(Meter detected a ROM failure).*', r'\1')
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples:
+        # 'NVRAM Error cleared for meter 00:13:50:05:ff:0d:7e:64.'
+        '3.18.72.28':   [
+            #-----
+            (r'((?:\s*occurred\s*)?(?:\s*(?:for|on)?\s*(?:meter)?)?\s+(?:[0-9a-zA-Z]+)(?:\:[0-9a-zA-Z]+)+[\s*\.]*)', '')
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples:
+        # 'NVRAM Error (C1219 Table 3) occurred for meter 00:13:50:05:ff:20:91:6c.'
+        '3.18.72.79':   [
+            #-----
+            (r'(NVRAM Error\s*(?:\(.*\))?\s*)(?:(?:\s*occurred\s*)?(?:\s*(?:for|on)?\s*(?:meter)?)?\s+(?:[0-9a-zA-Z]+)(?:\:[0-9a-zA-Z]+)+\.?)', r'\1'), 
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples:
+        # 'Meter event Nonvolatile Memory Failure Detected  Time event occurred on meter = 01/21/2020 09:45:01  Sequence number = 3335  User id = 0  Event argument = 00-00'
+        # 'null'????????????
+        # SEEMS RARE, BUT HAVE SEEN:
+        # 'Meter event Demand Reset Occurred  Time event occurred on meter = 01/29/2023  Sequence number = 711  User id = 1  Event argument = 00-00 '
+        # 'Meter event Reset List Pointers  Time event occurred on meter = 09/07/2021  Sequence number = 227  User id = 0  Event argument = 03-00'
+        # 'KV2c meter event Received kWh Caution Diagnostic flags:Phase A Voltage'
+        # 'Universal event Unsupported Event(41) with priority Alarm. '
+        '3.18.72.85':   [
+            #-----
+#             (r'(Meter event (?:Nonvolatile Memory Failure Detected|Demand Reset Occurred|Reset List Pointers))\s*Time event occurred on meter\s*=.*\s*Sequence number\s*=.*\s*User id\s*=.*\s*Event argument\s*=.*', r'\1'),
+            (r'(Meter event.*)\s*Time event occurred on meter\s*=.*\s*Sequence number\s*=.*\s*User id\s*=.*\s*Event argument\s*=.*', r'\1'), 
+            #-----
+            # FAILSAFE in case Sequence number etc. not found above
+            # NOTE: Cannot do (Meter event.*).*, as that will reduce everything altered above donw to simply 'Meter event'
+            #       Also, if any additional info (e.g, Sequence number) is to be extracted using above, this must be removed
+            (r'(Meter event (?:Nonvolatile Memory Failure Detected|Demand Reset Occurred|Reset List Pointers)).*', r'\1'),
+            #-----
+            (r'(Meter detected a nonvolatile memory failure).*', 'Meter event Nonvolatile Memory Failure Detected'), 
+            #-----
+            (r'(KV2c meter event .*)\s*(Diagnostic flags)\:(.*?)\s*$', r'\1 (\2 = \3)'),
+            #-----
+            (r'(Universal event Unsupported Event\s*(?:\(.*\))?\s*with priority Alarm)[\s*\.]*', r'\1'), 
+            #-----
+            ('null', 'Reason is null, ID=3.18.72.85')
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples:
+        # 'RAM Error cleared for meter 00:13:50:05:ff:0d:dd:17.'
+        '3.18.85.28':    [
+            #-----
+            (r'((?:\s*occurred\s*)?(?:\s*(?:for|on)?\s*(?:meter)?)?\s+(?:[0-9a-zA-Z]+)(?:\:[0-9a-zA-Z]+)+[\s*\.]*)', '')
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples
+        # 'RAM Error (C1219 Table 3) occurred for meter 00:13:50:05:ff:0d:dd:17.'
+        '3.18.85.79':   [
+            #-----
+            (r'((?:\s*occurred\s*)?(?:\s*(?:for|on)?\s*(?:meter)?)?\s+(?:[0-9a-zA-Z]+)(?:\:[0-9a-zA-Z]+)+[\s*\.]*)', '')
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples
+        # 'Meter detected a RAM failure.'
+        # 'Meter event Ram Failure Detected  Time event occurred on meter = 7/27/2021 12:45:53 PM  Sequence number = 89  User id = 34891  Event argument = 7D-75'
+        '3.18.85.85':   [
+            #-----
+            (r'(Meter event Ram Failure Detected)\s*Time event occurred on meter\s*=.*\s*Sequence number=.*\s*User id\s*=.*\s*Event argument\s*=.*', r'\1'), 
+            #-----
+            (r'(Meter event Ram Failure Detected).*', r'\1'),
+            #-----
+            (r'(Meter detected a RAM failure).*', 'Meter event Ram Failure Detected'), 
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples
+        # 'ROM Error (C1219 Table 3) occurred for meter 00:13:50:05:ff:1f:ba:d0.'
+        '3.18.92.28':   [
+            #-----
+            (r'((?:\s*occurred\s*)?(?:\s*(?:for|on)?\s*(?:meter)?)?\s+(?:[0-9a-zA-Z]+)(?:\:[0-9a-zA-Z]+)+[\s*\.]*)', '')
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples
+        # 'ROM Error (C1219 Table 3) occurred for meter 00:13:50:05:ff:1f:ba:d0.'
+        '3.18.92.79':   [
+            #-----
+            (r'((?:\s*occurred\s*)?(?:\s*(?:for|on)?\s*(?:meter)?)?\s+(?:[0-9a-zA-Z]+)(?:\:[0-9a-zA-Z]+)+[\s*\.]*)', '')
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples
+        # 'Meter event Rom Failure Detected  Time event occurred on meter = 03/16/2020 07:00:51  Sequence number = 1983  User id = 1024  Event argument = 00-00'
+        # 'Meter detected a ROM failure.'
+        '3.18.92.85':    [
+            #-----
+            (r'(Meter event Rom Failure Detected)\s*Time event occurred on meter\s*=.*\s*Sequence number\s*=.*\s*User id\s*=.*\s*Event argument\s*=.*', r'\1'), 
+            #-----
+            (r'(Meter event Rom Failure Detected).*', r'\1'),
+            #-----
+            (r'(Meter detected a ROM failure).*', 'Meter event Rom Failure Detected'), 
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples
+        # 'Meter event Measurement Error Detected  Time event occurred on meter = 08/26/2021 08:27:25  Sequence number = 307  User id = 0  Event argument = 00-00 '
+        '3.21.1.79':    [
+            #-----
+            (r'(Meter event Measurement Error Detected)\s*Time event occurred on meter\s*=.*\s*Sequence number\s*=.*\s*User id\s*=.*\s*Event argument\s*=.*', r'\1'), 
+            #-----
+            (r'(Meter event Measurement Error Detected).*', r'\1'), #Fail proof, in case time, sequence, etc., not found 
+            #-----
+            (r'(Meter detected a measurement error).*', 'Meter event Measurement Error Detected')
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples
+        # 'Meter event Nonvolatile Memory Failure Detected  Time event occurred on meter = 08/30/2021 04:00:11  Sequence number = 3256  User id = 0  Event argument = 00-00 '
+        '3.21.1.173':    [
+            #-----
+            (r'(Meter event Nonvolatile Memory Failure Detected)\s*Time event occurred on meter\s*=.*\s*Sequence number\s*=.*\s*User id\s*=.*\s*Event argument\s*=.*', r'\1'), 
+            #-----
+            (r'(Meter event Nonvolatile Memory Failure Detected).*', r'\1'),
+            #-----
+            (r'(Meter detected a nonvolatile memory failure).*', 'Meter event Nonvolatile Memory Failure Detected'), 
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples
+        # 'System Error cleared for meter 00:13:50:05:ff:11:2d:23.'
+        '3.21.3.28':    [
+            #-----
+            (r'((?:\s*occurred\s*)?(?:\s*(?:for|on)?\s*(?:meter)?)?\s+(?:[0-9a-zA-Z]+)(?:\:[0-9a-zA-Z]+)+[\s*\.]*)', '')
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples
+        # 'System Error (C1219 Table 3: Er000020) occurred for meter 00:13:50:05:ff:0f:17:ba.'
+        '3.21.3.79':    [
+            #-----
+            (r'((?:\s*occurred\s*)?(?:\s*(?:for|on)?\s*(?:meter)?)?\s+(?:[0-9a-zA-Z]+)(?:\:[0-9a-zA-Z]+)+[\s*\.]*)', '')
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples
+        # 'Meter detected a self check error.'
+        '3.21.17.28':    [
+            #-----
+            (r'(Meter detected a self check error).', r'\1'), 
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples
+        # 'Meter detected a self check error.'
+        '3.21.18.79':    [
+            #-----
+            (r'(Meter detected a self check error).*', r'\1'), 
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples
+        # 'Detected end of voltage sag on meter 00:13:50:05:ff:32:66:22 on one or several phases. Duration: 21 cycles (less than a second), Min RMS Voltage: Phase A 118.1 V, Phase B 95.4 V, Phase C 120.3 V, RMS Current (at min voltage): Phase A 1.0 A, Phase B 0.2 A, Phase C 1.2 A'
+        '3.21.38.223':  [
+            #-----
+            (r'(Detected end of voltage sag)(?:(?:\s*(?:for|on)?\s*(?:meter)?)?\s+(?:[0-9a-zA-Z]+)(?:\:[0-9a-zA-Z]+)+\.?).*Duration:.*, Min RMS Voltage: Phase A .*, Phase B .*, Phase C .*, RMS Current \(at min voltage\): Phase A .*, Phase B .*, Phase C .*', r'\1'), 
+            #-----
+            # Failsafe
+            (r'(Detected end of voltage sag)(?:(?:\s*(?:for|on)?\s*(?:meter)?)?\s+(?:[0-9a-zA-Z]+)(?:\:[0-9a-zA-Z]+)+\.?).*', r'\1'), 
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples
+        # 'Detected end of voltage swell on meter 00:13:50:05:ff:1b:49:b0 on one or several phases. Duration: 5 cycles (less than a second), Max RMS Voltage: Phase A 111.2 V, Phase B 133.2 V, Phase C 216.1 V, RMS Current (at max voltage): Phase A 2.8 A, Phase B 1.3 A, Phase C 0.8 A'
+        '3.21.38.248':  [
+            #-----
+            (r'(Detected end of voltage swell)(?:(?:\s*(?:for|on)?\s*(?:meter)?)?\s+(?:[0-9a-zA-Z]+)(?:\:[0-9a-zA-Z]+)+\.?).*Duration: .*, Min RMS Voltage: .*, RMS Current \(at min voltage\): .*', r'\1'), 
+            #-----
+            # Failsafe
+            (r'(Detected end of voltage swell)(?:(?:\s*(?:for|on)?\s*(?:meter)?)?\s+(?:[0-9a-zA-Z]+)(?:\:[0-9a-zA-Z]+)+\.?).*', r'\1')  
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples
+        # 'Detected end of voltage sag on meter 00:13:50:03:ff:01:a6:36. Duration: 2 seconds, Min RMS Voltage: Phase A 227.9 V, RMS Current (at min voltage): Phase A 0.0 A'
+        '3.21.43.223':  [
+            #-----
+            (r'(Detected end of voltage sag)(?:(?:\s*(?:for|on)?\s*(?:meter)?)?\s+(?:[0-9a-zA-Z]+)(?:\:[0-9a-zA-Z]+)+\.?).*Duration: .*, Min RMS Voltage: .*, RMS Current \(at min voltage\): .*', r'\1'), 
+            #-----
+            (r'(Detected end of voltage sag)(?:(?:\s*(?:for|on)?\s*(?:meter)?)?\s+(?:[0-9a-zA-Z]+)(?:\:[0-9a-zA-Z]+)+\.?).*', r'\1'), # failsafe  
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples
+        # 'Detected end of voltage swell on meter 00:13:50:05:ff:2d:2c:25. Duration: 195 seconds, Max RMS Voltage: Phase A 265.7 V, RMS Current (at max voltage): Phase A 0.0 A'
+        '3.21.43.248':  [
+            #-----
+            (r'(Detected end of voltage swell)(?:(?:\s*(?:for|on)?\s*(?:meter)?)?\s+(?:[0-9a-zA-Z]+)(?:\:[0-9a-zA-Z]+)+\.?).*Duration: .*, Min RMS Voltage: .*, RMS Current \(at min voltage\): .*', r'\1'), 
+            #-----
+            (r'(Detected end of voltage swell)(?:(?:\s*(?:for|on)?\s*(?:meter)?)?\s+(?:[0-9a-zA-Z]+)(?:\:[0-9a-zA-Z]+)+\.?).*', r'\1'), # failsafe  
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples
+        # 'Measurement Error cleared for meter 00:13:50:05:ff:07:c0:55.'
+        '3.21.67.28':    [
+            #-----
+            (r'((?:\s*occurred\s*)?(?:\s*(?:for|on)?\s*(?:meter)?)?\s+(?:[0-9a-zA-Z]+)(?:\:[0-9a-zA-Z]+)+[\s*\.]*)', '')
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples
+        # 'Meter event Measurement Error Detected  Time event occurred on meter = 01/26/2020 19:47:00  Sequence number = 284  User id = 0  Event argument = 00-00'
+        # 'Measurement Error (C1219 Table 3) occurred for meter 00:13:50:03:ff:06:d6:d5.'
+        '3.21.67.79':    [
+            #-----
+            (r'(Measurement Error\s*(?:\(.*\))?\s*)(?:(?:\s*occurred\s*)?(?:\s*(?:for|on)?\s*(?:meter)?)?\s+(?:[0-9a-zA-Z]+)(?:\:[0-9a-zA-Z]+)+\.?)', r'\1'), 
+            #-----
+            (r'(Meter event Measurement Error Detected)\s*Time event occurred on meter\s*=.*\s*Sequence number\s*=.*\s*User id\s*=.*\s*Event argument\s*=.*', r'\1'), 
+            #-----
+            (r'(Meter event Measurement Error Detected).*', r'\1'),
+            #-----
+            (r'(Meter detected a measurement error).*', 'Meter event Measurement Error Detected')
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples
+        # 'DSP Error cleared for meter 00:13:50:05:ff:0b:87:fc.'
+        '3.21.82.28':    [
+            #-----
+            (r'((?:\s*occurred\s*)?(?:\s*(?:for|on)?\s*(?:meter)?)?\s+(?:[0-9a-zA-Z]+)(?:\:[0-9a-zA-Z]+)+[\s*\.]*)', '')
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples
+        # 'DSP Error (C1219 Table 3: Er200000) occurred for meter 00:13:50:05:ff:2c:f3:e2.'
+        '3.21.82.79':    [
+            #-----
+            (r'((?:\s*occurred\s*)?(?:\s*(?:for|on)?\s*(?:meter)?)?\s+(?:[0-9a-zA-Z]+)(?:\:[0-9a-zA-Z]+)+[\s*\.]*)', '')
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples
+        # 'Meter event Test Mode Stopped  Time event occurred on meter = 08/27/2021 10:04:04  Sequence number = 23834  User id = 1  Event argument = 00-00 '
+        '3.22.12.243':   [
+            #-----
+            (r'(Meter event Test Mode Stopped)\s*Time event occurred on meter\s*=.*\s*Sequence number\s*=.*\s*User id\s*=.*\s*Event argument\s*=.*', r'\1'), 
+            #-----
+            (r'(Meter event Test Mode Stopped).*', r'\1'), #Fail proof, in case time, sequence, etc., not found 
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples
+        # 'Meter event Test Mode Started  Time event occurred on meter = 08/27/2021 07:48:19  Sequence number = 765  User id = 1  Event argument = 00-00 '
+        '3.22.19.242':   [
+            #-----
+            (r'(Meter event Test Mode Started)\s*Time event occurred on meter\s*=.*\s*Sequence number\s*=.*\s*User id\s*=.*\s*Event argument\s*=.*', r'\1'), 
+            #-----
+            (r'(Meter event Test Mode Started).*', r'\1'), #Fail proof, in case time, sequence, etc., not found 
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples
+        # 'Device 00:13:50:05:ff:2e:17:7e has been determined to have exceeded the max allowable trap threshold, 20, within a certain time limit, 3600 seconds.'
+        '3.23.17.139':   [
+            #-----
+            (r'(Device)(?:\s+(?:[0-9a-zA-Z]+)(?:\:[0-9a-zA-Z]+)+).*(exceeded the max allowable trap threshold).*', r'\1 \2'), 
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples
+        # 'Access Point 00:13:50:08:ff:00:06:8e has lost connectivity with FHSS 900 MHz band.'
+        '3.23.136.47':  [
+            #-----
+            (r'(Access Point)(?:\s+(?:[0-9a-zA-Z]+)(?:\:[0-9a-zA-Z]+)+)\s*(has lost connectivity with FHSS 900 MHz band.)', r'\1 \2') 
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples
+        # Device: 00:13:50:05:ff:20:f5:ef Time: 2021-01-20T06:03:47.000-05:00 Failed Device: 00:13:50:05:ff:20:f5:ef Reason: Security public key mismatch Reboot Counter: 44 Refresh Counter: 0 Seconds since last reboot 6872803
+        # 'NIC Link Layer Handshake Failed: Device: 00:13:50:05:ff:19:4e:6b, Rejected neighbor Mac ID: 00:13:50:05:ff:18:a3:52, Rejection Cause: invalid eblob signature'
+        '3.23.136.85':  [
+            #-----
+            # Below, Device and Failed Device sometimes blank, sometime MAC-esque
+            (r'Device\:?(?:\s+(?:[0-9a-zA-Z]+)(?:\:[0-9a-zA-Z]+)+)? Time: .* Failed Device\:?(?:\s+(?:[0-9a-zA-Z]+)(?:\:[0-9a-zA-Z]+)+)? (Reason: .*) Reboot Counter: .* Refresh Counter: .*', r'Device Failed: \1'), 
+            #-----
+            (r'(NIC Link Layer Handshake Failed): Device:(?:\s+(?:[0-9a-zA-Z]+)(?:\:[0-9a-zA-Z]+)+), Rejected neighbor Mac ID:(?:\s+(?:[0-9a-zA-Z]+)(?:\:[0-9a-zA-Z]+)+), (Rejection Cause: .*)', r'\1: \2')
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples
+        # 'Meter generated an energy polarity gyrbox call in event.'
+        '3.25.17.3':   [
+            #-----
+            (r'(Meter generated an energy polarity gyrbox call in event).*', r'\1'), 
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples
+        # 'Primary Power Down occurred for meter 00:13:50:05:ff:16:5f:61.'
+        # 'Meter had a power outage. Unsafe power fail count = 32714'
+        # 'Meter event Primary Power Down  Time event occurred on meter = 08/05/2021 16:59:27  Sequence number = 691  User id = 0  Event argument = 00-00'
+        '3.26.0.47': [
+            #-----
+            (r'(Primary Power Down)(?:(?:\s*occurred\s*)?(?:\s*(?:for|on)?\s*(?:meter)?)?\s+(?:[0-9a-zA-Z]+)(?:\:[0-9a-zA-Z]+)+\.?)', r'\1'), 
+            #-----
+            (r'(Meter had a power outage)\.?\s*(Unsafe power fail)\s*count\s*=\s*[0-9]+', r'\1 (\2)'), 
+            #-----
+            (r'(Meter event Primary Power Down)\s*Time event occurred on meter\s*=.*\s*Sequence number\s*=.*\s*User id\s*=.*\s*Event argument\s*=.*', r'\1'), 
+            #-----
+            (r'(Meter event Primary Power Down).*', r'\1'), #Fail proof, in case time, sequence, etc., not found 
+        ],         
+        
+        #-------------------------
+        # Examples
+        # 'Primary Power Up occurred for meter 00:13:50:05:ff:22:2a:0c.'
+        # 'Meter event Primary Power Up Time event occurred on meter = 08/14/2020 Sequence number = 343 User id = 0 Event argument = 00-00'
+        '3.26.0.216':   [
+            #-----
+            (r'(Primary Power Up)(?:(?:\s*occurred\s*)?(?:\s*(?:for|on)?\s*(?:meter)?)?\s+(?:[0-9a-zA-Z]+)(?:\:[0-9a-zA-Z]+)+\.?)', r'\1'), 
+            #-----
+            (r'Meter event (Primary Power Up)\s*Time event occurred on meter\s*=.*\s*Sequence number\s*=.*\s*User id\s*=.*\s*Event argument\s*=.*', r'\1'), 
+            #-----
+            (r'Meter event (Primary Power Up).*', r'\1'),  #Fail proof, in case time, sequence, etc., not found 
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples
+        # 'Meter had a power outage. Unsafe power fail count = 13050'
+        # Meter event Primary Power Down  Time event occurred on meter = 08/31/2021 20:07:18  Sequence number = 103  User id = 0  Event argument = 00-00 
+        '3.26.17.185':  [
+            #-----
+            (r'(Meter had a power outage).\s*(Unsafe power fail) count = [0-9]+', r'\1 (\2)'), 
+            #-----
+            (r'(Meter event Primary Power Down)\s*Time event occurred on meter\s*=.*\s*Sequence number\s*=.*\s*User id\s*=.*\s*Event argument\s*=.*', r'\1'), 
+            #-----
+            (r'(Meter event Primary Power Down).*', r'\1'), #Fail proof, in case time, sequence, etc., not found 
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples
+        # 'Meter event Primary Power Up  Time event occurred on meter = 08/31/2021 20:07:44  Sequence number = 104  User id = 0  Event argument = 00-00 '
+        '3.26.17.216':  [
+            #-----
+            (r'Meter event (Primary Power Up)\s*Time event occurred on meter\s*=.*\s*Sequence number\s*=.*\s*User id\s*=.*\s*Event argument\s*=.*', r'\1'), 
+            #-----
+            (r'Meter event (Primary Power Up).*', r'\1'), #Fail proof, in case time, sequence, etc., not found 
+            #-----
+        ], 
+        
+        #-------------------------
+        # Examples
+        # 'Under Voltage cleared (CA000400) for meter 00:13:50:05:ff:0b:88:ec.'
+        # 'Under Voltage (CA000400) cleared for meter 00:13:50:05:ff:15:e8:3b.'
+        # 'Under Voltage (Diagnostic 6) cleared for meter 00:13:50:05:ff:3f:87:07N/A.'
+        '3.26.38.37':   [
+            #-----
+            # NOTE: Due to annoying N/A at end of some MAC-esque IDs, I have to specify length of numerical entries
+            #       as [0-9a-zA-Z]{1,2}, instead of the more general [0-9a-zA-Z]+ found elsewhere!
+            (r'(Under Voltage|Low Potential|Diag6 Condition)\s*(\scleared)?\s*(\s\(.*\))?\s*(\scleared)?\s*(?:(?:\s*(?:for|on)?\s*(?:meter)?)?\s+(?:[0-9a-zA-Z]{1,2})(?:\:[0-9a-zA-Z]{1,2})+(?:N/A)?\.?)', r'$1$3$2$4')
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples
+        # 'Low Potential (C1219 Table 3) occurred for meter 00:13:50:05:ff:1b:67:3b.'
+        '3.26.38.47': [
+            #-----
+            (r'((?:\s*occurred\s*)?(?:\s*(?:for|on)?\s*(?:meter)?)?\s+(?:[0-9a-zA-Z]+)(?:\:[0-9a-zA-Z]+)+[\s*\.]*)', '')
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples
+        # 'Diag7 Condition cleared for meter 00:13:50:03:00:4d:41:fa.'
+        # 'Over Voltage (Diagnostic 7) cleared for meter 00:13:50:05:ff:37:87:3dN/A.'
+        '3.26.38.73':   [
+            #-----
+            # NOTE: Due to annoying N/A at end of some MAC-esque IDs, I have to specify length of numerical entries
+            #       as [0-9a-zA-Z]{1,2}, instead of the more general [0-9a-zA-Z]+ found elsewhere!
+            (r'((?:\s*occurred\s*)?(?:\s*(?:for|on)?\s*(?:meter)?)?\s+(?:[0-9a-zA-Z]{1,2})(?:\:[0-9a-zA-Z]{1,2})+(?:N/A)?\.?)', '')
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples
+        # 'Diag7: Over Voltage, Element A occurred for meter 00:13:50:02:00:0a:d7:98.'
+        # 'Over Voltage (Diagnostic 7) occurred for meter 00:13:50:05:ff:41:8a:8f: Phase A.'
+        # SEEMS RARE, BUT HAVE SEEN:
+        # 'KV2c meter event Over Voltage Diagnostic flags:Phase A Voltage'
+        # 'KV2c meter event Under Voltage Caution Diagnostic flags:Phase B Voltage'
+        '3.26.38.93':   [
+            #-----
+            (r'(KV2c meter event (?:(?:Over|Under) Voltage)|(?:Voltage Out of Tolerance))\s*(Diagnostic flags)\:(.*?)\s*$', r'\1 (\2 = \3)'), 
+            #-----
+            (r'(.*Over Voltage.*?)(?:(?:\s*occurred\s*)?(?:\s*(?:for|on)?\s*(?:meter)?)?\s+(?:[0-9a-zA-Z]+)(?:\:[0-9a-zA-Z]+)+\.?)(.*?)\s*$', r'\1 \2') 
+            #-----
+        ], 
+        
+        #-------------------------
+        # Examples
+        # 'Under Voltage cleared (CA000400) for meter 00:13:50:05:ff:0b:88:ec.'
+        # 'Under Voltage (CA000400) cleared for meter 00:13:50:05:ff:15:e8:3b.'
+        # 'Under Voltage (Diagnostic 6) cleared for meter 00:13:50:05:ff:3f:87:07N/A.'
+        # 'KV2c meter event Under Voltage Diagnostic flags:Phase A Voltage'
+        # 'Diag6: Under Voltage, Element A occurred for meter 00:13:50:05:ff:0b:88:ec.'
+        '3.26.38.150':   [
+            #-----
+            # NOTE: Due to annoying N/A at end of some MAC-esque IDs, I have to specify length of numerical entries
+            #       as [0-9a-zA-Z]{1,2}, instead of the more general [0-9a-zA-Z]+ found elsewhere!
+            # NOTE: Also, the use of non-greedy (.*?) at beginning.
+            #       If (.*) were used instead, results would be, e.g.
+            #          'Diag6: Under Voltage, Element A occurred for meter'
+            #       instead of 
+            #          'Diag6: Under Voltage, Element A'
+            (r'(Under Voltage\s*(?:\(.*\))?\s*)(?:(?:\s*occurred\s*)?(?:\s*(?:for|on)?\s*(?:meter)?)?\s+(?:[0-9a-zA-Z]+)(?:\:[0-9a-zA-Z]+)+[\.\:]?)(\s?.*?)', r'$1$2'), 
+            #-----
+            (r'(Diag6.*?)(?:(?:\s*occurred\s*)?(?:\s*(?:for|on)?\s*(?:meter)?)?\s+(?:[0-9a-zA-Z]+)(?:\:[0-9a-zA-Z]+)+[\.\:]?)(\s?.*?)', r'$1$2'), 
+            #-----
+            (r'(KV2c meter event .*)\s*(Diagnostic flags)\:(.*?)\s*$', r'$1 ($2 = $3)')
+            #-----
+        ], 
+        
+        #-------------------------
+        # Examples
+        # 'Last Gasp - NIC power lost for device: 00:13:50:05:ff:0b:83:e4, Reboot Count: 12264, NIC timestamp: 2020-01-19T22:21:02.000-05:00, Received timestamp: 2020-01-19T22:21:04.353-05:00, Fail Reason: [0x49] LG_ZERO_X_DETECTOR ,LG_DIRECT_NOTIFICATION'
+        '3.26.136.47':  [
+            #-----
+            (r'(Last Gasp - NIC power lost for device):(?:\s+(?:[0-9a-zA-Z]+)(?:\:[0-9a-zA-Z]+)+).*(Fail Reason: .*)$', r'\1, \2')
+            #-----
+        ], 
+        
+        #-------------------------
+        # Examples
+        # 'Device 00:13:50:05:ff:0b:8a:18, Last Gasp State: EL_EVENT_POWER_FAIL_DETECT_LG_DISABLED, Detector State: EL_EVENT_POWER_FAIL_DETECT_NIC_ZX_DISABLED, Reboot Count: 108'
+        '3.26.136.66':  [
+            #-----
+            (r'Device(?:\s+(?:[0-9a-zA-Z]+)(?:\:[0-9a-zA-Z]+)+), (Last Gasp State: .*), (Detector State: .*), Reboot Count: \d*', r'\1, \2'), 
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples
+        # 'NIC Power Restore Trap Received from device: 00:13:50:05:ff:0c:7e:93, Reboot Count: 61, NIC timestamp: 2020-01-27T09:19:56.000-05:00, Received Timestamp: 2020-01-27T09:19:57.204-05:00, Power Restoration Timestamp: 2020-01-27T09:19:42.000-05:00, State: 4,p'
+        '3.26.136.216': [
+            #-----
+            (r'(NIC Power Restore Trap Received from device):(?:\s+(?:[0-9a-zA-Z]+)(?:\:[0-9a-zA-Z]+)+).*', r'\1'), 
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples
+        # 'Meter assumed to be disconnected has reported Load side voltage indicating a potential case of tamper.'
+        '3.31.1.143':   [
+            #-----
+            (r'(Meter assumed to be disconnected has reported Load side voltage indicating a potential case of tamper).*', r'\1'), 
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples
+        # 'Meter event Reverse Rotation Detected  Time event occurred on meter = 08/30/2021 04:25:38  Sequence number = 13124  User id = 0  Event argument = 00-00 '
+        '3.33.1.219':   [
+            #-----
+            (r'(Meter event Reverse Rotation Detected)\s*Time event occurred on meter\s*=.*\s*Sequence number\s*=.*\s*User id\s*=.*\s*Event argument\s*=.*', r'\1'), 
+            #-----
+            (r'(Meter event Reverse Rotation Detected).*', r'\1'), #Fail proof, in case time, sequence, etc., not found 
+            #-----
+            (r'(Meter detected a Reverse Rotation).*', 'Meter event Reverse Rotation Detected'), 
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples
+        # 'Meter detected a Tamper Attempt.'
+        # 'Meter event Tamper Attempt Suspected  Time event occurred on meter = 08/28/2021 08:45:05  Sequence number = 72  User id = 0  Event argument = 00-00 '
+        '3.33.1.257':   [
+            #-----
+            (r'(Meter event Tamper Attempt Suspected)\s*Time event occurred on meter\s*=.*\s*Sequence number\s*=.*\s*User id\s*=.*\s*Event argument\s*=.*', r'\1'), 
+            #-----
+            (r'(Meter event Tamper Attempt Suspected).*', r'\1'), #Fail proof, in case time, sequence, etc., not found 
+            #-----
+            (r'(Meter detected a Tamper Attempt).*', 'Meter event Tamper Attempt Suspected'), 
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples
+        # 'Cleared: Meter 00:13:50:05:ff:11:69:bb detected a high temperature condition. (C1219 Table 3)'
+        '3.35.0.28': [
+            #-----
+            # NOTE: Here, the MAC-esque code occurs in middle of string, not the end as is common elsewhere.
+            #       This is why the pattern here excludes [\s*\.]* at the end
+            (r'((?:\s*occurred\s*)?(?:\s*(?:for|on)?\s*(?:meter)?)?\s+(?:[0-9a-zA-Z]+)(?:\:[0-9a-zA-Z]+)+\.?)', '')
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples
+        # 'Meter 00:13:50:05:ff:11:69:bb detected a high temperature condition. (C1219 Table 3)'
+        # 'Meter's temperature threshold exceeded.'
+        # 'Meter event AX Temp Threshold Exceeded  Time event occurred on meter = 02/19/2021 13:33:50  Sequence number = 5115  User id = 0  Event argument = 00-00 '
+        '3.35.0.40': [
+            #-----
+            (r'(Meter)(?:\s+(?:[0-9a-zA-Z]+)(?:\:[0-9a-zA-Z]+)+)\s*(detected a high temperature condition)\.\s*(.*)', r'\1 \2 \3'), 
+            #-----
+            (r"(Meter's temperature threshold exceeded).", r'\1'), 
+            #-----
+            (r'(Meter event AX Temp Threshold Exceeded)\s*Time event occurred on meter\s*=.*\s*Sequence number\s*=.*\s*User id\s*=.*\s*Event argument\s*=.*', r'\1'), 
+            #-----
+            (r'(Meter event AX Temp Threshold Exceeded).*', r'\1'),
+        ],         
+        
+        #-------------------------
+        # Examples
+        # 'Meter detected a clock error.'
+        # 'Meter event Clock Error Detected  Time event occurred on meter = 04/18/2020 10:00:10  Sequence number = 332  User id = 0  Event argument = 00-00'
+        '3.36.0.79': [
+            #-----
+            (r'(Meter event Clock Error Detected)\s*Time event occurred on meter\s*=.*\s*Sequence number\s*=.*\s*User id\s*=.*\s*Event argument\s*=.*', r'\1'), 
+            #-----
+            (r'(Meter event Clock Error Detected).*', r'\1'),
+            #-----
+            (r'(Meter detected a clock error).*', 'Meter event Clock Error Detected'), 
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples
+        # 'Meter detected a clock error.'
+        '3.36.1.29': [
+            #-----
+            ('(Meter detected a clock error).', r'\1'), 
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples
+        # 'Meter 00:13:50:05:ff:2e:13:de, detected loss of time (C1219 Table 3)'
+        '3.36.114.73':  [
+            #-----
+            (r'(Meter)(?:\s+(?:[0-9a-zA-Z]+)(?:\:[0-9a-zA-Z]+)+),\s*(detected loss of time .*)', r'\1 \2'), 
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples
+        # 'Ignoring Interval Read data for device 00:13:50:05:ff:1e:fa:a4 as it has time in the future 2069-05-02 18:51:00.0'
+        '3.36.114.159': [
+            #-----
+            (r'(Ignoring (?:Interval|Register) Read data for device)(?:\s+(?:[0-9a-zA-Z]+)(?:\:[0-9a-zA-Z]+)+)\s*(as it has time in the future).*', r'\1 \2'), 
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples
+        # 'Meter 00:13:50:05:ff:14:c9:61 needs explicit time sync. Drift: 14391 s, Encountered Problems:  TS_ERR_LP_BX, TS_ERR_BIG_DRIFT [0x44], Meter_Time: 06:33:41'
+        '3.36.136.73':  [
+            #-----
+            (r'(Meter)(?:\s+(?:[0-9a-zA-Z]+)(?:\:[0-9a-zA-Z]+)+)\s*(needs explicit time sync.) Drift: -?\d* s, (Encountered Problems:\s*.*), Meter_Time.*', r'\1 \2 \3'), 
+            #-----
+        ], 
+        
+        #-------------------------
+        # Examples
+        # 'Error occurred when attempting to synch meter time with NIC time for device 00:13:50:05:ff:29:e1:20'
+        # So, standard beg/end patterns should suffice
+        '3.36.136.79':    [
+            #-----
+            (r'((?:\s*occurred\s*)?(?:\s*(?:for|on)?\s*(?:meter)?)?\s+(?:[0-9a-zA-Z]+)(?:\:[0-9a-zA-Z]+)+[\s*\.]*)', '')
+            #-----
+        ],         
+        
+        #-------------------------
+        # Examples
+        # 'KV2c meter event Polarity, Cross Phase, Reverse Energy Flow Diagnostic flags:Phase B Voltage '
+        # 'KV2c meter event Polarity, Cross Phase, Reverse Energy Flow Diagnostic flags:Phase B Voltage, Phase C Voltage '
+        '3.38.1.139':    [
+            #-----
+            (r'(KV2c meter event Polarity, Cross Phase, Reverse Energy Flow) Diagnostic flags:.*', r'\1'), 
+            #-----
+        ]
+    }

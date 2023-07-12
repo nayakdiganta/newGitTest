@@ -1,0 +1,44 @@
+
+Deployment Document For Outage Prediction Model
+----------------------------------------------------------
+Git path :https://github.aepsc.com/AEP/ppo.git
+branch/repo : events_summary (it is a feature branch sourced from dev branch)
+branch : 
+code has been merged to 'qa' branch from 'developer' branch (feature branch is 'events_summary')
+
+files to be copied:-
+1. cp scripts/ddl/outage-prediction-ddl.sh  /home/hdpapp/ppo/scripts/ddl/
+
+2. cp scripts/yml/outage-prediction.yml  /home/hdpapp/ppo/scripts/yml/
+
+3. cp scripts/yml/outage-prediction-snow.yml  /home/hdpapp/ppo/scripts/yml/
+
+4. cp glueetl/end-device-event-catg-hist-load.py /home/hdpapp/ppo/glueetl/
+
+5. cp glueetl/end-device-event-catg-incr-load.py /home/hdpapp/ppo/glueetl/
+
+6. cp data/regex_setup.csv /home/hdpapp/ppo/data/
+
+###copy regex_setup.csv file 
+7. cp data/regex_setup.csv  s3://aep-datalake-consume-qa/util/event_summ_regex_setup/
+
+
+###following file to be taken from 'meter_events' repo.
+code has been merged to 'qa' branch from
+
+8. cp scripts/meter_events_stg_joined_with_macss.sh /home/hdpapp/meter_events/scripts/
+
+
+####DDLs (to be run one time) 
+pls execute below commands:-
+1. chmod +x /home/hdpapp/ppo/scripts/ddl/outage-prediction-ddl.sh
+2. sh /home/hdpapp/ppo/scripts/ddl/outage-prediction-ddl.sh qa
+
+
+####CloudFormation Script
+1. pls run /home/hdpapp/ppo/scripts/yml/outage-prediction.yml 
+        command is within the file
+
+2. run /home/hdpapp/ppo/scripts/yml/outage-prediction-snow.yml
+        command is within the file
+

@@ -1,0 +1,235 @@
+##/**------------------------------------------------------------------------------------------**/
+##/**    AMERICAN ELECTRIC POWER - Outage Preditcion StepFunction CFN script                   **/
+##/**------------------------------------------------------------------------------------------**/
+##/**                               Confidentiality Information:                               **/
+##/**                               Copyright 2022, 2023 by                                    **/
+##/**                               American Electric Power                                    **/
+##/**                                                                                          **/
+##/** This module is confidential and proprietary information of American Electric             **/
+##/** Power, it is not to be copied or reproduced in any form, by any means, in                **/
+##/** whole or in part, nor is it to be used for any purpose other than that for               **/
+##/** which it is expressly provide without written permission of AEP.                         **/
+##/**------------------------------------------------------------------------------------------**/
+##/** AEP Custom Changes                                                                       **/
+##/**  Version #   Name                     Date            Description                        **/
+##/**   V0.1       Diganta                  05/15/2023      First Attempt in CloudFormation    **/
+##/**                                                                                          **/
+##/**------------------------------------------------------------------------------------------**/
+
+AWSTemplateFormatVersion: 2010-09-09
+Description: CTIES STEP-FUNCTION CFN Script
+
+
+## Note: Command to create Stack via CLI
+## aws cloudformation deploy \
+## --template outage-prediction-stepfunction.yml \
+## --stack-name outage-prediction-stepfunction \
+## --tags BusinessUnit=ITCORP \
+##        Owner=analytics_hadoop@aep.com \
+##        map-migrated=d-server-01lbno209ea5yq \
+##        map-migrated-app=Hadoop_Prod \
+## --capabilities "CAPABILITY_NAMED_IAM" \
+## --no-fail-on-empty-changeset \
+## --parameter-overrides pEnvironment=dev 
+
+
+## Define Parameters
+
+Parameters:
+
+## Env
+  pEnvironment:
+    Description: AEP Lifecycle Environment
+    Type: String
+    Default: dev
+    AllowedValues: [ dev, qa, prod ]
+
+  pStepFunctionName:
+    Type: String
+    Description: Function Name
+    Default: 'aep-sf3-outage-prediction'
+
+  pEventschedulerName:
+    Type: String
+    Default: aep-dl-outage-prediction
+
+Resources:
+  ## StepFunction IAM Role
+  rStepFunctionIAMRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: states.amazonaws.com
+            Action: sts:AssumeRole
+      RoleName: !Sub "outage-pred-stepfunction-execution-role-${pEnvironment}"
+      Policies:
+        - PolicyName: aep_dl_app_stepfunc_policy_outage_pred_logs
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                  - logs:CreateLogDelivery
+                  - logs:GetLogDelivery
+                  - logs:UpdateLogDelivery
+                  - logs:DeleteLogDelivery
+                  - logs:ListLogDeliveries
+                  - logs:PutResourcePolicy
+                  - logs:DescribeResourcePolicies
+                  - logs:DescribeLogGroups
+                Effect: Allow
+                Resource: '*'      
+
+        - PolicyName: aep_dl_app_stepfunc_policy_outage_pred_kms
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                  - kms:Decrypt
+                  - kms:Encrypt
+                  - kms:Get*
+                  - kms:List*
+                  - kms:DescribeCustomKeyStores
+                  - kms:DescribeKey
+                  - kms:GenerateDataKey
+
+                Effect: Allow
+                Resource: 
+                  # '*'
+                  - !ImportValue s3KMSKeyArn
+                  # - arn:aws:kms:us-east-1:292805373755:key/a3023ed0-948d-4af9-bc91-f6fa16cda59f
+                  # - arn:aws:kms:us-east-1:889415020100:key/5936e2d8-4b42-4f25-a643-30044d1a1142
+
+        - PolicyName: aep_dl_app_stepfunc_policy_outage_pred_glue
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                  - glue:StartJobRun
+                  - glue:GetJobRun
+                  - glue:GetJobRuns
+                  - glue:GetJob
+                  - glue:BatchStopJobRun
+                Effect: Allow
+                Resource: !Sub "arn:aws:glue:*:${AWS::AccountId}:job/ppo*"
+        
+        - PolicyName: aep_dl_app_stepfunc_policy_outage_pred_xray
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Action:
+                  - "xray:PutTraceSegments"
+                  - "xray:PutTelemetryRecords"
+                  - "xray:GetSamplingRules"
+                  - "xray:GetSamplingTargets"
+                Effect: Allow
+                Resource: '*'
+
+      PermissionsBoundary: !Sub "arn:aws:iam::${AWS::AccountId}:policy/AEPCloudBoundary"
+      
+## StepFunction 
+  rOutagePredStepFunction:
+    Type: 'AWS::StepFunctions::StateMachine'
+    Properties:
+      StateMachineName: !Sub "${pStepFunctionName}"
+      StateMachineType: STANDARD
+      RoleArn: !GetAtt rStepFunctionIAMRole.Arn
+      TracingConfiguration:
+        Enabled: true
+      Tags: 
+        - Key: Owner
+          Value: 'analytics_hadoop@aep.com'
+        - Key: Team
+          Value: 'Analytics Hadoop'
+        - Key: ProductName
+          Value: 'Step Function'
+        - Key: BusinessUnit
+          Value: 'ITCORP'
+        - Key: BackUp
+          Value: 'False'
+        - Key: UseCase
+          Value: 'Outage-Prediction' 
+        - Key: Step
+          Value: 'Jobs Orchestration - Outage-Prediction'
+      
+      DefinitionString: !Sub |
+        {
+        "Comment": "outage-prediction Step Function",
+        "StartAt": "aep-sf3-end-device-event-catg-incr-load",
+        "States": {
+          "aep-sf3-end-device-event-catg-incr-load": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::glue:startJobRun.sync",
+            "Parameters": {
+              "JobName": "end-device-event-catg-incr-load-new",
+              "Arguments": {
+                "--JOB_NAME.$": "$.JOB_NAME"
+              }
+            },
+            "Retry": [
+              {
+                "ErrorEquals": [
+                  "Glue.AWSGlueException"
+                ],
+                "IntervalSeconds": 300,
+                "MaxAttempts": 2,
+                "BackoffRate": 2
+              }
+            ],
+            "Next": "aep-sf3-meter-event-outage-summ"
+          },
+          "aep-sf3-meter-event-outage-summ": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::glue:startJobRun",
+            "Parameters": {
+              "JobName": "meter-event-outage-summ-new",
+              "Arguments": {
+                "--JOB_NAME.$": "$.JOB_NAME"
+              }
+            },
+            "End": true
+          }
+        }
+        }
+
+  rOutagePredStepFunctionScheduler:
+    Type: AWS::Scheduler::Schedule
+    Properties: 
+      Description: "Daily Schedluer for Outage Prediction"
+      FlexibleTimeWindow: 
+       #MaximumWindowInMinutes: 15
+       Mode: "OFF"
+      Name: !Sub "${pEventschedulerName}"
+      ScheduleExpression: cron(10 * * * ? *)
+      ScheduleExpressionTimezone: "US/Eastern"
+      State: "DISABLED"
+      Target: 
+        Arn: !GetAtt rOutagePredStepFunction.Arn
+        # Input: !Sub '{"VAR_OPCO":"pso", "JOB_NAME":"${pGlueETLJobName}"}'
+        RetryPolicy:
+          MaximumEventAgeInSeconds: 600
+          MaximumRetryAttempts: 2
+        RoleArn: !ImportValue AmiAnalyticModelsRole
+
+## Define Resource Definitions to be built
+Outputs:
+
+  oOutagePredStepFunctionIAMRoleArn:
+    Description: ARN for Cties StepFunction IAMRole    
+    Value: !GetAtt rStepFunctionIAMRole.Arn
+    Export : 
+      Name : oOutagePredStepFunctionIAMRoleArn
+    # Value: !Ref rStepFunctionIAMRole
+    
+
+  oOutagePredStepFunctionArn:
+    Description: ARN for Cties Step Function
+    Value: !Ref rOutagePredStepFunction
+
+  
